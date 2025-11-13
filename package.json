@@ -1,0 +1,17 @@
+{
+  "name": "bfcm-coindrop-dashboard",
+  "version": "1.0.0",
+  "description": "Real-time BFCM order monitoring dashboard",
+  "main": "proxy-server.js",
+  "scripts": {
+    "start": "node proxy-server.js",
+    "proxy": "node proxy-server.js"
+  },
+  "keywords": [
+    "dashboard",
+    "bfcm",
+    "real-time"
+  ],
+  "author": "",
+  "license": "ISC"
+}

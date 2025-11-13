@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BFCM Dashboard - Live Data</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="controls">
+        <button class="refresh-button" id="refreshButton" onclick="dashboard.manualRefresh()">
+            🔄 Refresh Now
+        </button>
+        <div class="toggle-container">
+            <span class="toggle-label">Auto-Polling:</span>
+            <div class="toggle-switch active" id="toggleSwitch" onclick="dashboard.togglePolling()">
+                <div class="toggle-slider"></div>
+            </div>
+            <span class="toggle-status" id="toggleStatus">ON</span>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <h1>BFCM Dashboard - Live Data</h1>
+
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-label">Total Orders</div>
+                <div class="metric-value" id="totalOrders">Loading...</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Total GMV</div>
+                <div class="metric-value" id="totalGMV">Loading...</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Average Order Value</div>
+                <div class="metric-value" id="avgOrder">Loading...</div>
+            </div>
+        </div>
+
+        <div class="orders-section">
+            <h2>Recent Orders</h2>
+            <div class="orders-list" id="ordersList">
+                <div class="loading">Connecting to API...</div>
+            </div>
+        </div>
+
+        <div class="status" id="status">
+            Initializing...
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
