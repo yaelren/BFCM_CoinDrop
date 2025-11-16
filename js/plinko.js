@@ -435,7 +435,7 @@ function setupGUI() {
 
   // Particle folder
   const particleFolder = gui.addFolder('Particles');
-  particleFolder.add(params, 'particleSize', 5, 70, 1)
+  particleFolder.add(params, 'particleSize', 5, 200, 1)
     .name('Size');
   particleFolder.add(params, 'particleCollisionScale', 0.3, 1.0, 0.05)
     .name('Collision Scale');
