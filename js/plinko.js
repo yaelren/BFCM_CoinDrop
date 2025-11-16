@@ -24,6 +24,7 @@ const params = {
   particleSize: 10,
   particleSpawnRate: 20,
   maxParticles: 100,
+  dropWidth: 0, // +- from center
 
   // Physics parameters
   particleRestitution: 0.5,
@@ -46,7 +47,6 @@ let engine;
 let world;
 let particles = [];
 let plinkos = [];
-let bounds = [];
 let gui;
 
 // Particle class
@@ -72,6 +72,7 @@ class Particle {
   }
 
   show() {
+    // fill(0,0,0,100);
     fill(this.hue, 100, 100);
     noStroke();
     const pos = this.body.position;
@@ -117,32 +118,7 @@ class Plinko {
   }
 }
 
-// Boundary class for walls
-class Boundary {
-  constructor(x, y, w, h) {
-    const options = {
-      isStatic: true,
-      friction: 0,
-      restitution: 0.5
-    };
-    this.body = Bodies.rectangle(x, y, w, h, options);
-    this.body.label = "boundary";
-    this.w = w;
-    this.h = h;
-    World.add(world, this.body);
-  }
-
-  show() {
-    noStroke();
-    fill(127);
-    const pos = this.body.position;
-    push();
-    translate(pos.x, pos.y);
-    rectMode(CENTER);
-    rect(0, 0, this.w, this.h);
-    pop();
-  }
-}
+// Boundary class removed - no longer using walls/buckets
 
 // Clear all physics bodies from world
 function clearWorld() {
@@ -157,12 +133,6 @@ function clearWorld() {
     World.remove(world, plinkos[i].body);
   }
   plinkos = [];
-
-  // Remove all boundaries
-  for (let i = bounds.length - 1; i >= 0; i--) {
-    World.remove(world, bounds[i].body);
-  }
-  bounds = [];
 }
 
 // Create plinko pegs
@@ -181,30 +151,11 @@ function createPlinkos() {
   }
 }
 
-// Create boundaries
-function createBoundaries() {
-  const spacing = width / params.cols;
-
-  // Bottom boundary
-  const bottomBound = new Boundary(width / 2, height + 50, width, 100);
-  bounds.push(bottomBound);
-
-  // Side boundaries (vertical walls)
-  for (let i = 0; i < params.cols + 2; i++) {
-    const x = i * spacing;
-    const h = 100;
-    const w = 10;
-    const y = height - h / 2;
-    const b = new Boundary(x, y, w, h);
-    bounds.push(b);
-  }
-}
 
 // Regenerate the entire plinko board
 function regeneratePlinkoBoard() {
   clearWorld();
   createPlinkos();
-  createBoundaries();
 }
 
 // Reset game
@@ -222,7 +173,10 @@ function clearAllParticles() {
 
 // Helper function to create new particle
 function newParticle() {
-  const p = new Particle(width / 2, 0, params.particleSize);
+  const centerX = width / 2;
+  const randomOffset = (Math.random() - 0.5) * 2 * params.dropWidth;
+  const spawnX = centerX + randomOffset;
+  const p = new Particle(spawnX, 0, params.particleSize);
   particles.push(p);
 }
 
@@ -281,6 +235,8 @@ function setupGUI() {
     .name('Spawn Rate');
   particleFolder.add(params, 'maxParticles', 50, 300, 10)
     .name('Max Particles');
+  particleFolder.add(params, 'dropWidth', 0, 500, 10)
+    .name('Drop Width (+/-)');
   particleFolder.add(params, 'particleRestitution', 0, 1, 0.05)
     .name('Bounciness')
     .onChange(() => {
@@ -330,7 +286,6 @@ function setup() {
 
   // Create initial setup
   createPlinkos();
-  createBoundaries();
 
   // Setup GUI controls
   setupGUI();
@@ -341,7 +296,7 @@ function setup() {
 
 // p5.js draw loop
 function draw() {
-  background(0, 0, 0);
+  clear();
 
   // Spawn new particles at regular intervals
   if (frameCount % params.particleSpawnRate === 0 &&
@@ -364,11 +319,6 @@ function draw() {
   // Render plinko pegs
   for (let i = 0; i < plinkos.length; i++) {
     plinkos[i].show();
-  }
-
-  // Render boundaries
-  for (let i = 0; i < bounds.length; i++) {
-    bounds[i].show();
   }
 }
 
