@@ -36,3 +36,21 @@ body {
         max-height: 100vh;
     }
 }
+
+/* Plinko Game Container */
+#plinko-container {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    width: 33.33%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+#plinko-container canvas {
+    display: block;
+}
