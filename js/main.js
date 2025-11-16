@@ -163,9 +163,36 @@ class Dashboard {
                 const location = this.formatLocation(order.location);
                 const amount = this.formatCurrencyWithCode(order.amount, order.currency);
 
+                // Extract metadata
+                const metadata = order.metadata || {};
+                const businessName = metadata.business_name || 'Unknown Business';
+                const businessConfig = metadata.business_config || 'UNKNOWN';
+                const siteDisplayName = metadata.site_display_name || '';
+                const storeCategory = metadata.store_category || '';
+                const storeSubCategory = metadata.store_sub_category || '';
+
+                // Build metadata badges
+                const configBadge = this.getBadgeHTML(businessConfig, this.getConfigColor(businessConfig));
+                const categoryBadge = storeCategory ? this.getBadgeHTML(storeCategory, '#2196F3') : '';
+                const subCategoryBadge = storeSubCategory ? this.getBadgeHTML(storeSubCategory, '#9C27B0') : '';
+
                 return `
                     <div class="order-item">
-                        <strong>${location}</strong>: ${amount} <span style="color: #999;">(${timeAgo})</span>
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px;">
+                            <div style="flex: 1;">
+                                <strong style="font-size: 1.05em;">${businessName}</strong>
+                                ${siteDisplayName && siteDisplayName !== businessName ? `<div style="color: #888; font-size: 0.85em; margin-top: 2px;">Site: ${siteDisplayName}</div>` : ''}
+                            </div>
+                            <div style="font-size: 1.1em; font-weight: bold; color: #4CAF50;">${amount}</div>
+                        </div>
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px;">
+                            ${configBadge}
+                            ${categoryBadge}
+                            ${subCategoryBadge}
+                        </div>
+                        <div style="color: #999; font-size: 0.9em;">
+                            📍 ${location} • 🕐 ${timeAgo}
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -236,6 +263,32 @@ class Dashboard {
         if (location.country) parts.push(location.country);
 
         return parts.join(', ') || 'Unknown Location';
+    }
+
+    /**
+     * Get color for business config badge
+     * @param {string} config - Business config type
+     * @returns {string} Hex color code
+     */
+    getConfigColor(config) {
+        const colors = {
+            'STORE': '#FF9800',
+            'RESTAURANT': '#FF5722',
+            'EVENT': '#9C27B0',
+            'BLOG': '#3F51B5',
+            'UNKNOWN': '#757575'
+        };
+        return colors[config] || '#757575';
+    }
+
+    /**
+     * Generate HTML for a badge
+     * @param {string} text - Badge text
+     * @param {string} color - Badge background color
+     * @returns {string} HTML string for badge
+     */
+    getBadgeHTML(text, color) {
+        return `<span style="background: ${color}; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.75em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">${text}</span>`;
     }
 
     /**
