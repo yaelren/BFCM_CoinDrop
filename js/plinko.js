@@ -10,19 +10,25 @@ const { Engine, World, Events, Bodies } = Matter;
 // Configuration object for lil-gui
 const params = {
   // Canvas dimensions
-  canvasWidthPercent: 33,
-  canvasHeight: window.innerHeight,
+  canvasWidthPercent: 47,
+  canvasHeight: 1260,
 
   // Grid configuration
-  cols: 11,
-  rows: 10,
+  cols: 9,
+  rows: 12,
+
+  // Boundary configuration
+  boundaryRadius: 640, // 0 = no boundary, >0 = circular boundary radius
+  boundaryCenterY: -180, // vertical offset from canvas center (+ = down, - = up)
+  tunnelWidth: 470, // width of bottom tunnel opening
+  wallSegments: 200, // number of wall segments (more = smoother, denser)
 
   // Peg configuration
   pegSize: 16,
 
   // Particle configuration
-  particleSize: 10,
-  particleSpawnRate: 20,
+  particleSize: 19,
+  particleSpawnRate: 9,
   maxParticles: 100,
   dropWidth: 0, // +- from center
 
@@ -47,6 +53,7 @@ let engine;
 let world;
 let particles = [];
 let plinkos = [];
+let boundaries = [];
 let gui;
 
 // Particle class
@@ -118,7 +125,35 @@ class Plinko {
   }
 }
 
-// Boundary class removed - no longer using walls/buckets
+// Boundary wall segment class
+class BoundaryWall {
+  constructor(x, y, w, h, angle = 0) {
+    const options = {
+      isStatic: true,
+      friction: 0.1,
+      restitution: 0.2,
+      angle: angle
+    };
+    this.body = Bodies.rectangle(x, y, w, h, options);
+    this.body.label = "boundary";
+    this.w = w;
+    this.h = h;
+    World.add(world, this.body);
+  }
+
+  show() {
+    noStroke();
+    fill(180, 180, 180);
+    const pos = this.body.position;
+    const angle = this.body.angle;
+    push();
+    translate(pos.x, pos.y);
+    rotate(angle);
+    rectMode(CENTER);
+    rect(0, 0, this.w, this.h);
+    pop();
+  }
+}
 
 // Clear all physics bodies from world
 function clearWorld() {
@@ -133,6 +168,12 @@ function clearWorld() {
     World.remove(world, plinkos[i].body);
   }
   plinkos = [];
+
+  // Remove all boundaries
+  for (let i = boundaries.length - 1; i >= 0; i--) {
+    World.remove(world, boundaries[i].body);
+  }
+  boundaries = [];
 }
 
 // Create plinko pegs
@@ -151,11 +192,83 @@ function createPlinkos() {
   }
 }
 
+// Create circular boundary with tunnel opening at bottom
+function createBoundaries() {
+  if (params.boundaryRadius <= 0) {
+    return; // No boundaries if radius is 0
+  }
+
+  const centerX = width / 2;
+  const centerY = (height / 2) + params.boundaryCenterY;
+  const radius = params.boundaryRadius;
+  const wallThickness = 30;
+  const numSegments = params.wallSegments;
+
+  // Calculate tunnel angle range (bottom opening)
+  const tunnelAngleRange = Math.atan2(params.tunnelWidth / 2, radius) * 2;
+
+  // Store tunnel edge positions for vertical walls
+  let leftTunnelX, rightTunnelX, tunnelY;
+
+  for (let i = 0; i < numSegments; i++) {
+    const angle = (i / numSegments) * Math.PI * 2;
+
+    // Skip segments in the tunnel opening range (bottom center)
+    const bottomAngleStart = (Math.PI / 2) - (tunnelAngleRange / 2);
+    const bottomAngleEnd = (Math.PI / 2) + (tunnelAngleRange / 2);
+
+    if (angle >= bottomAngleStart && angle <= bottomAngleEnd) {
+      // Store the tunnel edge positions
+      if (!leftTunnelX) {
+        leftTunnelX = centerX + Math.cos(bottomAngleStart) * radius;
+        tunnelY = centerY + Math.sin(bottomAngleStart) * radius;
+      }
+      rightTunnelX = centerX + Math.cos(bottomAngleEnd) * radius;
+      continue; // Skip this segment to create tunnel opening
+    }
+
+    // Position each wall segment
+    const x = centerX + Math.cos(angle) * radius;
+    const y = centerY + Math.sin(angle) * radius;
+
+    // Calculate segment length (arc length) - slightly longer to ensure overlap
+    const segmentLength = (2 * Math.PI * radius) / numSegments * 1.2;
+
+    // Create wall segment rotated to follow circle
+    const wall = new BoundaryWall(x, y, segmentLength, wallThickness, angle);
+    boundaries.push(wall);
+  }
+
+  // Create vertical tunnel walls (corridor)
+  const corridorHeight = height - tunnelY + 50; // Extend beyond bottom of canvas
+
+  // Left vertical wall
+  const leftWall = new BoundaryWall(
+    leftTunnelX,
+    tunnelY + corridorHeight / 2,
+    wallThickness,
+    corridorHeight,
+    0 // Vertical orientation
+  );
+  boundaries.push(leftWall);
+
+  // Right vertical wall
+  const rightWall = new BoundaryWall(
+    rightTunnelX,
+    tunnelY + corridorHeight / 2,
+    wallThickness,
+    corridorHeight,
+    0 // Vertical orientation
+  );
+  boundaries.push(rightWall);
+}
+
 
 // Regenerate the entire plinko board
 function regeneratePlinkoBoard() {
   clearWorld();
   createPlinkos();
+  createBoundaries();
 }
 
 // Reset game
@@ -214,6 +327,21 @@ function setupGUI() {
     .onChange(regeneratePlinkoBoard);
   gridFolder.add(params, 'rows', 5, 20, 1)
     .name('Rows')
+    .onChange(regeneratePlinkoBoard);
+
+  // Boundary folder
+  const boundaryFolder = gui.addFolder('Boundaries');
+  boundaryFolder.add(params, 'boundaryRadius', 0, 1000, 10)
+    .name('Radius (0=off)')
+    .onChange(regeneratePlinkoBoard);
+  boundaryFolder.add(params, 'boundaryCenterY', -500, 500, 10)
+    .name('Center Y Offset')
+    .onChange(regeneratePlinkoBoard);
+  boundaryFolder.add(params, 'tunnelWidth', 50, 500, 10)
+    .name('Tunnel Width')
+    .onChange(regeneratePlinkoBoard);
+  boundaryFolder.add(params, 'wallSegments', 40, 200, 5)
+    .name('Wall Density')
     .onChange(regeneratePlinkoBoard);
 
   // Peg folder
@@ -286,6 +414,7 @@ function setup() {
 
   // Create initial setup
   createPlinkos();
+  createBoundaries();
 
   // Setup GUI controls
   setupGUI();
@@ -319,6 +448,11 @@ function draw() {
   // Render plinko pegs
   for (let i = 0; i < plinkos.length; i++) {
     plinkos[i].show();
+  }
+
+  // Render boundaries
+  for (let i = 0; i < boundaries.length; i++) {
+    boundaries[i].show();
   }
 }
 
