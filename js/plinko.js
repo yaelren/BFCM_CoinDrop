@@ -179,6 +179,10 @@ function clearWorld() {
 // Create plinko pegs
 function createPlinkos() {
   const spacing = width / params.cols;
+  const centerX = width / 2;
+  const centerY = (height / 2) + params.boundaryCenterY;
+  const radius = params.boundaryRadius;
+
   for (let j = 0; j < params.rows; j++) {
     for (let i = 0; i < params.cols + 1; i++) {
       let x = i * spacing;
@@ -186,8 +190,23 @@ function createPlinkos() {
         x += spacing / 2;
       }
       const y = spacing + j * spacing;
-      const p = new Plinko(x, y, params.pegSize);
-      plinkos.push(p);
+
+      // Only create peg if it's inside the boundary (or if no boundary)
+      if (params.boundaryRadius <= 0) {
+        // No boundary, create all pegs
+        const p = new Plinko(x, y, params.pegSize);
+        plinkos.push(p);
+      } else {
+        // Check if peg is inside circular boundary
+        const dx = x - centerX;
+        const dy = y - centerY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < radius - params.pegSize) {
+          const p = new Plinko(x, y, params.pegSize);
+          plinkos.push(p);
+        }
+      }
     }
   }
 }
