@@ -22,28 +22,29 @@ const params = {
   boundaryCenterY: -180, // vertical offset from canvas center (+ = down, - = up)
   tunnelWidth: 470, // width of bottom tunnel opening
   wallSegments: 200, // number of wall segments (more = smoother, denser)
-  backgroundColor: '#1a1a2e', // background color inside boundary
+  backgroundColor: '#d6d6d6', // background color inside boundary
   boundariesVisible: true, // toggle boundary wall visibility
 
   // Peg configuration
   pegSize: 16,
 
   // Particle configuration
-  particleSize: 19,
+  particleSize: 70,
+  particleCollisionScale: 0.35, // Scale collision radius (0.0-1.0) to match visual appearance
   particleSpawnRate: 9,
   maxParticles: 100,
-  dropWidth: 0, // +- from center
-  particleShadowBlur: 15,
+  dropWidth: 170, // +- from center
+  particleShadowBlur: 27,
   particleShadowOpacity: 0.5,
-  particleShadowOffsetX: 3,
-  particleShadowOffsetY: 3,
+  particleShadowOffsetX: -2,
+  particleShadowOffsetY: 10,
 
   // Physics parameters
-  particleRestitution: 0.5,
-  particleFriction: 0,
+  particleRestitution: 0.1,
+  particleFriction: 0.55,
   particleDensity: 1,
   pegRestitution: 1,
-  gravity: 1,
+  gravity: 0.2,
 
   // Control functions
   resetGame: function() {
@@ -73,12 +74,20 @@ class Particle {
     const options = {
       restitution: params.particleRestitution,
       friction: params.particleFriction,
-      density: params.particleDensity
+      density: params.particleDensity,
+      frictionAir: 0.01 // Add slight air resistance
     };
     x += Math.random() * 2 - 1;
-    this.body = Bodies.circle(x, y, r, options);
+    // Use scaled radius for collision detection
+    const collisionRadius = r * params.particleCollisionScale;
+    this.body = Bodies.circle(x, y, collisionRadius, options);
     this.body.label = "particle";
-    this.r = r;
+    this.r = r; // Keep full radius for rendering
+
+    // Set random initial rotation and angular velocity
+    Matter.Body.setAngle(this.body, Math.random() * Math.PI * 2);
+    Matter.Body.setAngularVelocity(this.body, (Math.random() - 0.5) * 0.1);
+
     World.add(world, this.body);
   }
 
@@ -90,8 +99,10 @@ class Particle {
 
   show() {
     const pos = this.body.position;
+    const angle = this.body.angle;
     push();
     translate(pos.x, pos.y);
+    rotate(angle); // Apply rotation from physics
 
     // Add drop shadow using canvas context
     drawingContext.shadowBlur = params.particleShadowBlur;
@@ -102,7 +113,20 @@ class Particle {
     // Draw image if available, otherwise draw colored circle
     if (this.image) {
       imageMode(CENTER);
-      image(this.image, 0, 0, this.r * 2, this.r * 2);
+      // Clip to circle to prevent overflow
+      drawingContext.save();
+      drawingContext.beginPath();
+      drawingContext.arc(0, 0, this.r, 0, Math.PI * 2);
+      drawingContext.clip();
+
+      // Maintain aspect ratio - fit width to diameter, center vertically
+      const diameter = this.r * 2;
+      const aspectRatio = this.image.width / this.image.height;
+      const imgWidth = diameter;
+      const imgHeight = diameter / aspectRatio;
+
+      image(this.image, 0, 0, imgWidth, imgHeight);
+      drawingContext.restore();
     } else {
       fill(this.hue, 100, 100);
       noStroke();
@@ -338,7 +362,8 @@ function newParticle() {
   const centerX = width / 2;
   const randomOffset = (Math.random() - 0.5) * 2 * params.dropWidth;
   const spawnX = centerX + randomOffset;
-  const p = new Particle(spawnX, 0, params.particleSize);
+  const spawnY = -100; // Spawn 100px above canvas
+  const p = new Particle(spawnX, spawnY, params.particleSize);
   particles.push(p);
 }
 
@@ -410,8 +435,10 @@ function setupGUI() {
 
   // Particle folder
   const particleFolder = gui.addFolder('Particles');
-  particleFolder.add(params, 'particleSize', 5, 30, 1)
+  particleFolder.add(params, 'particleSize', 5, 70, 1)
     .name('Size');
+  particleFolder.add(params, 'particleCollisionScale', 0.3, 1.0, 0.05)
+    .name('Collision Scale');
   particleFolder.add(params, 'particleSpawnRate', 5, 60, 1)
     .name('Spawn Rate');
   particleFolder.add(params, 'maxParticles', 50, 300, 10)
