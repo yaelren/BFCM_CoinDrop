@@ -445,7 +445,7 @@ function setupGUI() {
     .name('Max Particles');
   particleFolder.add(params, 'dropWidth', 0, 500, 10)
     .name('Drop Width (+/-)');
-  particleFolder.add(params, 'particleRestitution', 0, 1, 0.05)
+  particleFolder.add(params, 'particleRestitution', 0, 5, 0.05)
     .name('Bounciness')
     .onChange(() => {
       particles.forEach(p => p.updatePhysics());
