@@ -263,10 +263,11 @@ class LEDDashboard {
 // Initialize LED dashboard when DOM is ready
 let ledDashboard;
 
-document.addEventListener('DOMContentLoaded', () => {
-    ledDashboard = new LEDDashboard();
-    ledDashboard.init();
-});
+// Commented out - API not available on this page
+// document.addEventListener('DOMContentLoaded', () => {
+//     ledDashboard = new LEDDashboard();
+//     ledDashboard.init();
+// });
 
 // Cleanup on page unload
 window.addEventListener('beforeunload', () => {

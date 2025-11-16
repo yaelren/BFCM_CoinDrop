@@ -22,6 +22,8 @@ const params = {
   boundaryCenterY: -180, // vertical offset from canvas center (+ = down, - = up)
   tunnelWidth: 470, // width of bottom tunnel opening
   wallSegments: 200, // number of wall segments (more = smoother, denser)
+  backgroundColor: '#1a1a2e', // background color inside boundary
+  boundariesVisible: true, // toggle boundary wall visibility
 
   // Peg configuration
   pegSize: 16,
@@ -31,6 +33,10 @@ const params = {
   particleSpawnRate: 9,
   maxParticles: 100,
   dropWidth: 0, // +- from center
+  particleShadowBlur: 15,
+  particleShadowOpacity: 0.5,
+  particleShadowOffsetX: 3,
+  particleShadowOffsetY: 3,
 
   // Physics parameters
   particleRestitution: 0.5,
@@ -55,11 +61,15 @@ let particles = [];
 let plinkos = [];
 let boundaries = [];
 let gui;
+let particleImages = [];
+const imageFiles = ['1_01.png', '1_02.png', '10_01.png', '10_02.png'];
 
 // Particle class
 class Particle {
   constructor(x, y, r) {
     this.hue = Math.random() * 360;
+    // Randomly select an image
+    this.image = random(particleImages);
     const options = {
       restitution: params.particleRestitution,
       friction: params.particleFriction,
@@ -79,13 +89,31 @@ class Particle {
   }
 
   show() {
-    // fill(0,0,0,100);
-    fill(this.hue, 100, 100);
-    noStroke();
     const pos = this.body.position;
     push();
     translate(pos.x, pos.y);
-    ellipse(0, 0, this.r * 2);
+
+    // Add drop shadow using canvas context
+    drawingContext.shadowBlur = params.particleShadowBlur;
+    drawingContext.shadowColor = `rgba(0, 0, 0, ${params.particleShadowOpacity})`;
+    drawingContext.shadowOffsetX = params.particleShadowOffsetX;
+    drawingContext.shadowOffsetY = params.particleShadowOffsetY;
+
+    // Draw image if available, otherwise draw colored circle
+    if (this.image) {
+      imageMode(CENTER);
+      image(this.image, 0, 0, this.r * 2, this.r * 2);
+    } else {
+      fill(this.hue, 100, 100);
+      noStroke();
+      ellipse(0, 0, this.r * 2);
+    }
+
+    // Reset shadow
+    drawingContext.shadowBlur = 0;
+    drawingContext.shadowOffsetX = 0;
+    drawingContext.shadowOffsetY = 0;
+
     pop();
   }
 
@@ -142,6 +170,8 @@ class BoundaryWall {
   }
 
   show() {
+    if (!params.boundariesVisible) return;
+
     noStroke();
     fill(180, 180, 180);
     const pos = this.body.position;
@@ -362,6 +392,10 @@ function setupGUI() {
   boundaryFolder.add(params, 'wallSegments', 40, 200, 5)
     .name('Wall Density')
     .onChange(regeneratePlinkoBoard);
+  boundaryFolder.add(params, 'boundariesVisible')
+    .name('Show Boundaries');
+  boundaryFolder.addColor(params, 'backgroundColor')
+    .name('Background Color');
 
   // Peg folder
   const pegFolder = gui.addFolder('Pegs');
@@ -399,6 +433,14 @@ function setupGUI() {
     .onChange(() => {
       particles.forEach(p => p.updatePhysics());
     });
+  particleFolder.add(params, 'particleShadowBlur', 0, 30, 1)
+    .name('Shadow Blur');
+  particleFolder.add(params, 'particleShadowOpacity', 0, 1, 0.05)
+    .name('Shadow Opacity');
+  particleFolder.add(params, 'particleShadowOffsetX', -10, 10, 1)
+    .name('Shadow Offset X');
+  particleFolder.add(params, 'particleShadowOffsetY', -10, 10, 1)
+    .name('Shadow Offset Y');
 
   // Physics folder
   const physicsFolder = gui.addFolder('Physics');
@@ -415,6 +457,14 @@ function setupGUI() {
   // Open important folders by default
   canvasFolder.open();
   particleFolder.open();
+}
+
+// Preload particle images
+function preload() {
+  for (let filename of imageFiles) {
+    const img = loadImage(`assets/${filename}`);
+    particleImages.push(img);
+  }
 }
 
 // p5.js setup function
@@ -445,6 +495,16 @@ function setup() {
 // p5.js draw loop
 function draw() {
   clear();
+
+  // Draw background circle inside boundary
+  if (params.boundaryRadius > 0) {
+    const centerX = width / 2;
+    const centerY = (height / 2) + params.boundaryCenterY;
+
+    noStroke();
+    fill(params.backgroundColor);
+    ellipse(centerX, centerY, params.boundaryRadius * 2, params.boundaryRadius * 2);
+  }
 
   // Spawn new particles at regular intervals
   if (frameCount % params.particleSpawnRate === 0 &&
@@ -482,6 +542,7 @@ function windowResized() {
 }
 
 // Expose to global scope for p5.js
+window.preload = preload;
 window.setup = setup;
 window.draw = draw;
 window.windowResized = windowResized;
