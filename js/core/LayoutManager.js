@@ -201,6 +201,12 @@ export class LayoutManager {
       const folder = this.controlsGUI.addFolder(element.id);
       this.guiFolders.set(element.id, folder);
 
+      // Add log button at the top of each element folder
+      folder.add({
+        logConfig: () => this.logElementConfig(element.id)
+      }, 'logConfig')
+        .name('📋 Log Config');
+
       // Element-specific controls
       this.addElementSpecificControls(folder, element, config);
     });
@@ -451,6 +457,23 @@ export class LayoutManager {
         }
         break;
     }
+  }
+
+  /**
+   * Log configuration for a specific element
+   */
+  logElementConfig(elementId) {
+    const element = this.elements.get(elementId);
+    if (!element) {
+      console.error(`Element "${elementId}" not found`);
+      return;
+    }
+
+    const config = element.getConfig();
+
+    console.log(`\n=== ${elementId} Configuration ===`);
+    console.log(JSON.stringify(config, null, 2));
+    console.log(`\n=== Copy and paste above ===\n`);
   }
 
   /**
