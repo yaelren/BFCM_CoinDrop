@@ -28,7 +28,7 @@ const ELEMENT_CONFIGS = {
       scrollSpeed: 63,
       maxQueue: 10,
       fontSize: 32,
-      color: '#FFFFFF',
+      color: '#333333',
       separator: '   '
     }
   },
@@ -84,7 +84,10 @@ const ELEMENT_CONFIGS = {
       particleFrictionAir: 0.01,
       // Peg physics settings
       pegRestitution: 0.8,
-      pegFriction: 0
+      pegFriction: 0,
+      // Visibility settings
+      showBoundaries: true,
+      showPegs: true
     }
   },
 
@@ -138,9 +141,9 @@ const ELEMENT_CONFIGS = {
     config: {
       animationStyle: 3,
       spinSpeed: 2000,
-      dollarSpins: false,
+      dollarSpins: true,
       fontSize: 48,
-      color: '#00ff88',
+      color: '#4f4f4f',
       digitHeight: 60
     }
   },
@@ -159,7 +162,7 @@ const ELEMENT_CONFIGS = {
       spinSpeed: 800,
       dollarSpins: false,
       fontSize: 48,
-      color: '#ff0080',
+      color: '#545454',
       digitHeight: 60
     }
   }

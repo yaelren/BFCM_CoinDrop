@@ -201,15 +201,13 @@ export class LayoutManager {
       const folder = this.controlsGUI.addFolder(element.id);
       this.guiFolders.set(element.id, folder);
 
-      // Add log button at the top of each element folder
-      folder.add({
-        logConfig: () => this.logElementConfig(element.id)
-      }, 'logConfig')
-        .name('📋 Log Config');
-
       // Element-specific controls
       this.addElementSpecificControls(folder, element, config);
     });
+
+    // Global controls
+    this.controlsGUI.add({ logAllConfigs: () => this.logAllConfigs() }, 'logAllConfigs')
+      .name('📋 Log All Configs');
   }
 
   /**
@@ -221,238 +219,212 @@ export class LayoutManager {
 
     switch (type) {
       case 'ticker':
-        // Text styling
-        const tickerTextFolder = folder.addFolder('Text Styling');
         if (config.fontSize !== undefined) {
-          tickerTextFolder.add(config, 'fontSize', 12, 200, 1)
+          folder.add(config, 'fontSize', 12, 200, 1)
             .name('Font Size')
             .onChange(() => element.updateConfig(config));
         }
         if (config.color) {
-          tickerTextFolder.addColor(config, 'color')
+          folder.addColor(config, 'color')
             .name('Text Color')
             .onChange(() => element.updateConfig(config));
         }
-
-        // Animation
-        const tickerAnimFolder = folder.addFolder('Animation');
         if (config.scrollSpeed !== undefined) {
-          tickerAnimFolder.add(config, 'scrollSpeed', 1, 200, 1)
+          folder.add(config, 'scrollSpeed', 1, 200, 1)
             .name('Scroll Speed')
             .onChange(() => element.updateConfig(config));
         }
         if (config.maxQueue !== undefined) {
-          tickerAnimFolder.add(config, 'maxQueue', 5, 100, 1)
+          folder.add(config, 'maxQueue', 5, 100, 1)
             .name('Max Queue Size')
             .onChange(() => element.updateConfig(config));
         }
         break;
 
       case 'counter':
-        // Text styling
-        const counterTextFolder = folder.addFolder('Text Styling');
         if (config.fontSize !== undefined) {
-          counterTextFolder.add(config, 'fontSize', 12, 200, 1)
+          folder.add(config, 'fontSize', 12, 200, 1)
             .name('Font Size')
             .onChange(() => element.updateConfig(config));
         }
         if (config.color) {
-          counterTextFolder.addColor(config, 'color')
+          folder.addColor(config, 'color')
             .name('Text Color')
             .onChange(() => element.updateConfig(config));
         }
-
-        // Animation
-        const counterAnimFolder = folder.addFolder('Animation');
         if (config.lerpSpeed !== undefined) {
-          counterAnimFolder.add(config, 'lerpSpeed', 0.1, 5, 0.1)
+          folder.add(config, 'lerpSpeed', 0.1, 5, 0.1)
             .name('Animation Speed')
             .onChange(() => element.updateConfig(config));
         }
         break;
 
       case 'slotMachine':
-        // Text styling
-        const slotTextFolder = folder.addFolder('Text Styling');
         if (config.fontSize !== undefined) {
-          slotTextFolder.add(config, 'fontSize', 12, 200, 1)
+          folder.add(config, 'fontSize', 12, 200, 1)
             .name('Font Size')
             .onChange(() => element.updateConfig(config));
         }
         if (config.color) {
-          slotTextFolder.addColor(config, 'color')
+          folder.addColor(config, 'color')
             .name('Text Color')
             .onChange(() => element.updateConfig(config));
         }
-
-        // Animation
-        const slotAnimFolder = folder.addFolder('Animation');
         if (config.animationStyle !== undefined) {
-          slotAnimFolder.add(config, 'animationStyle', { 'All Together': 1, 'Sequential': 2, 'Random': 3 })
+          folder.add(config, 'animationStyle', { 'All Together': 1, 'Sequential': 2, 'Random': 3 })
             .name('Animation Style')
             .onChange(() => element.updateConfig(config));
         }
         if (config.spinSpeed !== undefined) {
-          slotAnimFolder.add(config, 'spinSpeed', 200, 2000, 50)
+          folder.add(config, 'spinSpeed', 200, 2000, 50)
             .name('Spin Duration (ms)')
             .onChange(() => element.updateConfig(config));
         }
         if (config.dollarSpins !== undefined) {
-          slotAnimFolder.add(config, 'dollarSpins')
+          folder.add(config, 'dollarSpins')
             .name('$ Symbol Spins')
             .onChange(() => element.updateConfig(config));
         }
         break;
 
       case 'map':
-        // Visual settings
-        const mapVisualFolder = folder.addFolder('Visual Settings');
         if (config.dotSize !== undefined) {
-          mapVisualFolder.add(config, 'dotSize', 5, 50, 1)
+          folder.add(config, 'dotSize', 5, 50, 1)
             .name('Dot Size')
             .onChange(() => element.updateConfig(config));
         }
         if (config.dotColor) {
-          mapVisualFolder.addColor(config, 'dotColor')
+          folder.addColor(config, 'dotColor')
             .name('Dot Color')
             .onChange(() => element.updateConfig(config));
         }
-
-        // Animation
-        const mapAnimFolder = folder.addFolder('Animation');
         if (config.dotFadeDuration !== undefined) {
-          mapAnimFolder.add(config, 'dotFadeDuration', 0, 10000, 100)
+          folder.add(config, 'dotFadeDuration', 0, 10000, 100)
             .name('Dot Fade (ms, 0=stay)')
             .onChange(() => element.updateConfig(config));
         }
         break;
 
       case 'p5':
-        // Grid Layout
-        const gridFolder = folder.addFolder('Grid Layout');
+        // Grid
         if (config.cols !== undefined) {
-          gridFolder.add(config, 'cols', 3, 20, 1)
+          folder.add(config, 'cols', 3, 20, 1)
             .name('Columns')
             .onChange(() => element.updateConfig(config));
         }
         if (config.rows !== undefined) {
-          gridFolder.add(config, 'rows', 3, 20, 1)
+          folder.add(config, 'rows', 3, 20, 1)
             .name('Rows')
             .onChange(() => element.updateConfig(config));
         }
 
-        // Visual Settings
-        const plinkoVisualFolder = folder.addFolder('Visual Settings');
-
-        // Add visibility toggles
+        // Visibility
         if (config.showBoundaries === undefined) config.showBoundaries = true;
-        plinkoVisualFolder.add(config, 'showBoundaries')
+        folder.add(config, 'showBoundaries')
           .name('Show Boundaries')
           .onChange(() => element.updateConfig(config));
 
         if (config.showPegs === undefined) config.showPegs = true;
-        plinkoVisualFolder.add(config, 'showPegs')
+        folder.add(config, 'showPegs')
           .name('Show Pegs')
           .onChange(() => element.updateConfig(config));
 
+        // Sizes
         if (config.pegSize !== undefined) {
-          plinkoVisualFolder.add(config, 'pegSize', 2, 20, 1)
+          folder.add(config, 'pegSize', 2, 20, 1)
             .name('Peg Size')
             .onChange(() => element.updateConfig(config));
         }
         if (config.particleSize !== undefined) {
-          plinkoVisualFolder.add(config, 'particleSize', 10, 200, 1)
+          folder.add(config, 'particleSize', 10, 200, 1)
             .name('Particle Size')
             .onChange(() => element.updateConfig(config));
         }
+
+        // Background
         if (config.backgroundColor !== undefined) {
-          plinkoVisualFolder.addColor(config, 'backgroundColor')
+          folder.addColor(config, 'backgroundColor')
             .name('Background Color')
             .onChange(() => element.updateConfig(config));
         }
         if (config.backgroundOpacity !== undefined) {
-          plinkoVisualFolder.add(config, 'backgroundOpacity', 0, 1, 0.05)
+          folder.add(config, 'backgroundOpacity', 0, 1, 0.05)
             .name('Background Opacity')
             .onChange(() => element.updateConfig(config));
         }
 
-        // Spawn Settings
-        const spawnFolder = folder.addFolder('Spawn Settings');
+        // Spawn
         if (config.particleSpawnRate !== undefined) {
-          spawnFolder.add(config, 'particleSpawnRate', 1, 60, 1)
+          folder.add(config, 'particleSpawnRate', 1, 60, 1)
             .name('Spawn Rate (frames)')
             .onChange(() => element.updateConfig(config));
         }
         if (config.maxParticles !== undefined) {
-          spawnFolder.add(config, 'maxParticles', 10, 200, 1)
+          folder.add(config, 'maxParticles', 10, 200, 1)
             .name('Max Particles')
             .onChange(() => element.updateConfig(config));
         }
         if (config.dropWidth !== undefined) {
-          spawnFolder.add(config, 'dropWidth', 50, 500, 10)
+          folder.add(config, 'dropWidth', 50, 500, 10)
             .name('Drop Width')
             .onChange(() => element.updateConfig(config));
         }
 
-        // Physics Settings
-        const physicsFolder = folder.addFolder('Physics Settings');
+        // Physics
         if (config.gravity !== undefined) {
-          physicsFolder.add(config, 'gravity', 0, 2, 0.05)
+          folder.add(config, 'gravity', 0, 2, 0.05)
             .name('Gravity')
             .onChange(() => element.updateConfig(config));
         }
 
-        // Boundary Settings
-        const boundaryFolder = folder.addFolder('Boundary Settings');
+        // Boundary
         if (config.boundaryRadius !== undefined) {
-          boundaryFolder.add(config, 'boundaryRadius', 0, 800, 10)
+          folder.add(config, 'boundaryRadius', 0, 800, 10)
             .name('Boundary Radius')
             .onChange(() => element.updateConfig(config));
         }
         if (config.boundaryCenterY !== undefined) {
-          boundaryFolder.add(config, 'boundaryCenterY', -300, 300, 10)
+          folder.add(config, 'boundaryCenterY', -300, 300, 10)
             .name('Boundary Center Y')
             .onChange(() => element.updateConfig(config));
         }
         if (config.tunnelWidth !== undefined) {
-          boundaryFolder.add(config, 'tunnelWidth', 50, 500, 10)
+          folder.add(config, 'tunnelWidth', 50, 500, 10)
             .name('Tunnel Width')
             .onChange(() => element.updateConfig(config));
         }
 
         // Particle Physics
-        const particlePhysicsFolder = folder.addFolder('Particle Physics');
         if (config.particleRestitution !== undefined) {
-          particlePhysicsFolder.add(config, 'particleRestitution', 0, 5, 0.05)
-            .name('Bounciness')
+          folder.add(config, 'particleRestitution', 0, 5, 0.05)
+            .name('Particle Bounciness')
             .onChange(() => element.updateConfig(config));
         }
         if (config.particleFriction !== undefined) {
-          particlePhysicsFolder.add(config, 'particleFriction', 0, 1, 0.05)
-            .name('Friction')
+          folder.add(config, 'particleFriction', 0, 1, 0.05)
+            .name('Particle Friction')
             .onChange(() => element.updateConfig(config));
         }
         if (config.particleDensity !== undefined) {
-          particlePhysicsFolder.add(config, 'particleDensity', 0.1, 5, 0.1)
-            .name('Density')
+          folder.add(config, 'particleDensity', 0.1, 5, 0.1)
+            .name('Particle Density')
             .onChange(() => element.updateConfig(config));
         }
         if (config.particleFrictionAir !== undefined) {
-          particlePhysicsFolder.add(config, 'particleFrictionAir', 0, 0.1, 0.001)
+          folder.add(config, 'particleFrictionAir', 0, 0.1, 0.001)
             .name('Air Resistance')
             .onChange(() => element.updateConfig(config));
         }
 
         // Peg Physics
-        const pegPhysicsFolder = folder.addFolder('Peg Physics');
         if (config.pegRestitution !== undefined) {
-          pegPhysicsFolder.add(config, 'pegRestitution', 0, 1, 0.05)
-            .name('Bounciness')
+          folder.add(config, 'pegRestitution', 0, 1, 0.05)
+            .name('Peg Bounciness')
             .onChange(() => element.updateConfig(config));
         }
         if (config.pegFriction !== undefined) {
-          pegPhysicsFolder.add(config, 'pegFriction', 0, 1, 0.05)
-            .name('Friction')
+          folder.add(config, 'pegFriction', 0, 1, 0.05)
+            .name('Peg Friction')
             .onChange(() => element.updateConfig(config));
         }
         break;
@@ -460,20 +432,19 @@ export class LayoutManager {
   }
 
   /**
-   * Log configuration for a specific element
+   * Log all element configurations (element-specific settings only)
    */
-  logElementConfig(elementId) {
-    const element = this.elements.get(elementId);
-    if (!element) {
-      console.error(`Element "${elementId}" not found`);
-      return;
-    }
+  logAllConfigs() {
+    console.log('\n=== LED Dashboard Element Configurations ===\n');
 
-    const config = element.getConfig();
+    const configs = {};
+    this.elements.forEach(element => {
+      const config = element.getConfig();
+      configs[element.id] = { ...config };
+    });
 
-    console.log(`\n=== ${elementId} Configuration ===`);
-    console.log(JSON.stringify(config, null, 2));
-    console.log(`\n=== Copy and paste above ===\n`);
+    console.log(JSON.stringify(configs, null, 2));
+    console.log('\n=== Copy and paste above ===\n');
   }
 
   /**
