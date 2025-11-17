@@ -29,6 +29,9 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
     tunnelWidth: externalConfig.tunnelWidth || 250,
     backgroundColor: externalConfig.backgroundColor || '#d6d6d6',
     backgroundOpacity: externalConfig.backgroundOpacity ?? 1.0,
+    // Visibility controls
+    showBoundaries: externalConfig.showBoundaries ?? true,
+    showPegs: externalConfig.showPegs ?? true,
     // Particle physics
     particleRestitution: externalConfig.particleRestitution ?? 0.1,
     particleFriction: externalConfig.particleFriction ?? 0.55,
@@ -337,9 +340,13 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
         }
       }
 
-      // Render pegs and boundaries
-      plinkos.forEach(plinko => plinko.show());
-      boundaries.forEach(boundary => boundary.show());
+      // Render pegs and boundaries (with visibility controls)
+      if (config.showPegs) {
+        plinkos.forEach(plinko => plinko.show());
+      }
+      if (config.showBoundaries) {
+        boundaries.forEach(boundary => boundary.show());
+      }
     },
 
     windowResized: () => {
