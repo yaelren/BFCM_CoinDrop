@@ -11,25 +11,25 @@ const { Engine, World, Events, Bodies } = Matter;
 const params = {
   // Canvas dimensions
   canvasWidthPercent: 47,
-  canvasHeight: 1260,
+  canvasHeightPercent: 58,
 
   // Grid configuration
   cols: 9,
-  rows: 12,
+  rows: 9,
 
   // Boundary configuration
-  boundaryRadius: 640, // 0 = no boundary, >0 = circular boundary radius
-  boundaryCenterY: -180, // vertical offset from canvas center (+ = down, - = up)
-  tunnelWidth: 470, // width of bottom tunnel opening
+  boundaryRadius: 350, // 0 = no boundary, >0 = circular boundary radius
+  boundaryCenterY: -90, // vertical offset from canvas center (+ = down, - = up)
+  tunnelWidth: 250, // width of bottom tunnel opening
   wallSegments: 200, // number of wall segments (more = smoother, denser)
   backgroundColor: '#d6d6d6', // background color inside boundary
   boundariesVisible: true, // toggle boundary wall visibility
 
   // Peg configuration
-  pegSize: 16,
+  pegSize: 6,
 
   // Particle configuration
-  particleSize: 70,
+  particleSize: 51,
   particleCollisionScale: 0.35, // Scale collision radius (0.0-1.0) to match visual appearance
   particleSpawnRate: 9,
   maxParticles: 100,
@@ -43,7 +43,7 @@ const params = {
   particleRestitution: 0.1,
   particleFriction: 0.55,
   particleDensity: 1,
-  pegRestitution: 1,
+  pegRestitution: 0.8,
   gravity: 0.2,
 
   // Control functions
@@ -375,7 +375,7 @@ function updateCanvasSize() {
   }
 
   const newWidth = window.innerWidth * (params.canvasWidthPercent / 100);
-  const newHeight = params.canvasHeight;
+  const newHeight = window.innerHeight * (params.canvasHeightPercent / 100);
 
   resizeCanvas(newWidth, newHeight);
   regeneratePlinkoBoard();
@@ -390,8 +390,8 @@ function setupGUI() {
   canvasFolder.add(params, 'canvasWidthPercent', 20, 100, 1)
     .name('Width %')
     .onChange(updateCanvasSize);
-  canvasFolder.add(params, 'canvasHeight', 400, window.innerHeight * 1.5, 10)
-    .name('Height')
+  canvasFolder.add(params, 'canvasHeightPercent', 50, 150, 1)
+    .name('Height %')
     .onChange(updateCanvasSize);
 
   // Grid folder
@@ -498,7 +498,7 @@ function preload() {
 function setup() {
   const canvas = createCanvas(
     window.innerWidth * (params.canvasWidthPercent / 100),
-    params.canvasHeight
+    window.innerHeight * (params.canvasHeightPercent / 100)
   );
   canvas.parent('plinko-container');
   colorMode(HSB, 100);
@@ -564,7 +564,6 @@ function draw() {
 
 // Handle window resize
 function windowResized() {
-  params.canvasHeight = window.innerHeight;
   updateCanvasSize();
 }
 
