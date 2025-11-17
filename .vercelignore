@@ -1,0 +1,22 @@
+# Vercel Ignore File
+# Files and directories that should not be uploaded to Vercel
+
+# Legacy proxy server backup (no longer needed)
+proxy-server.js.backup
+
+# Development files
+.DS_Store
+node_modules
+.env.local
+.env*.local
+
+# IDE and system files
+.vscode
+.idea
+*.swp
+*.swo
+
+# Testing and docs
+claudedocs/
+.playwright-mcp/
+.serena/

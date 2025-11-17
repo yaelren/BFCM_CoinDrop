@@ -23,6 +23,7 @@ const params = {
   tunnelWidth: 250, // width of bottom tunnel opening
   wallSegments: 200, // number of wall segments (more = smoother, denser)
   backgroundColor: '#d6d6d6', // background color inside boundary
+  backgroundTransparent: false, // toggle transparent background
   boundariesVisible: true, // toggle boundary wall visibility
 
   // Peg configuration
@@ -236,6 +237,9 @@ function createPlinkos() {
   const centerX = width / 2;
   const centerY = (height / 2) + params.boundaryCenterY;
   const radius = params.boundaryRadius;
+  
+  // Calculate minimum clearance needed: particle size + safety margin
+  const minClearance = params.particleSize + 5;
 
   for (let j = 0; j < params.rows; j++) {
     for (let i = 0; i < params.cols + 1; i++) {
@@ -251,12 +255,13 @@ function createPlinkos() {
         const p = new Plinko(x, y, params.pegSize);
         plinkos.push(p);
       } else {
-        // Check if peg is inside circular boundary
+        // Check if peg is inside circular boundary with clearance for particles
         const dx = x - centerX;
         const dy = y - centerY;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        if (distance < radius - params.pegSize) {
+        // Ensure peg is far enough from boundary to prevent particle jamming
+        if (distance < radius - minClearance) {
           const p = new Plinko(x, y, params.pegSize);
           plinkos.push(p);
         }
@@ -419,6 +424,8 @@ function setupGUI() {
     .onChange(regeneratePlinkoBoard);
   boundaryFolder.add(params, 'boundariesVisible')
     .name('Show Boundaries');
+  boundaryFolder.add(params, 'backgroundTransparent')
+    .name('Transparent BG');
   boundaryFolder.addColor(params, 'backgroundColor')
     .name('Background Color');
 
@@ -436,7 +443,8 @@ function setupGUI() {
   // Particle folder
   const particleFolder = gui.addFolder('Particles');
   particleFolder.add(params, 'particleSize', 5, 200, 1)
-    .name('Size');
+    .name('Size')
+    .onChange(regeneratePlinkoBoard);
   particleFolder.add(params, 'particleCollisionScale', 0.3, 1.0, 0.05)
     .name('Collision Scale');
   particleFolder.add(params, 'particleSpawnRate', 5, 60, 1)
@@ -501,6 +509,10 @@ function setup() {
     window.innerHeight * (params.canvasHeightPercent / 100)
   );
   canvas.parent('plinko-container');
+  
+  // Enable transparency support
+  canvas.elt.getContext('2d').globalCompositeOperation = 'source-over';
+  
   colorMode(HSB, 100);
 
   // Initialize Matter.js physics engine
@@ -523,8 +535,8 @@ function setup() {
 function draw() {
   clear();
 
-  // Draw background circle inside boundary
-  if (params.boundaryRadius > 0) {
+  // Draw background circle inside boundary (if not transparent)
+  if (params.boundaryRadius > 0 && !params.backgroundTransparent) {
     const centerX = width / 2;
     const centerY = (height / 2) + params.boundaryCenterY;
 

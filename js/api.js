@@ -1,12 +1,10 @@
 // BFCM Dashboard API Module
 // Handles all API communication with Wix BFCM Dashboard
 
-// Use local proxy to bypass CORS restrictions
-// Start proxy with: node proxy-server.js
-const API_BASE_URL = 'http://localhost:3000';
-
-// Direct API URL (will fail due to CORS in browser)
-// const API_BASE_URL = 'https://wix-bo.com/_api/bfcm-dashboard-serverless/_functions';
+// Vercel Serverless API Routes (works locally with 'vercel dev' and in production)
+// Local: Run 'vercel dev' or 'npm run dev'
+// Production: Deploys automatically with Vercel
+const API_BASE_URL = '/api';
 
 class BFCMApi {
     constructor() {

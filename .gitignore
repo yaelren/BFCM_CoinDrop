@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Vercel
+.vercel/
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# System files
+.DS_Store
+*.swp
+*.swo
+
+# IDE
+.vscode/
+.idea/
+
+# Backups
+*.backup
+
+# Build output
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing & Documentation
+.playwright-mcp/
+.serena/
+claudedocs/
