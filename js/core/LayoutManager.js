@@ -382,17 +382,17 @@ export class LayoutManager {
 
         // Boundary
         if (config.boundaryRadius !== undefined) {
-          folder.add(config, 'boundaryRadius', 0, 800, 10)
+          folder.add(config, 'boundaryRadius', 0, 2000, 10)
             .name('Boundary Radius')
             .onChange(() => element.updateConfig(config));
         }
         if (config.boundaryCenterY !== undefined) {
-          folder.add(config, 'boundaryCenterY', -300, 300, 10)
+          folder.add(config, 'boundaryCenterY', -500, 500, 10)
             .name('Boundary Center Y')
             .onChange(() => element.updateConfig(config));
         }
         if (config.tunnelWidth !== undefined) {
-          folder.add(config, 'tunnelWidth', 50, 500, 10)
+          folder.add(config, 'tunnelWidth', 50, 1500, 10)
             .name('Tunnel Width')
             .onChange(() => element.updateConfig(config));
         }
