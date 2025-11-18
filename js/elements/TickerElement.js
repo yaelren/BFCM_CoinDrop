@@ -4,6 +4,8 @@ import { BaseElement } from '../core/BaseElement.js';
  * TickerElement - Horizontal scrolling text ticker
  * Used for displaying store names in a continuous scroll
  */
+import { toResponsiveUnit } from '../utils/ResponsiveScale.js';
+
 export class TickerElement extends BaseElement {
   constructor(id, config) {
     super(id, {
@@ -40,7 +42,7 @@ export class TickerElement extends BaseElement {
       display: inline-block;
       position: absolute;
       left: 0;
-      font-size: ${this.config.fontSize}px;
+      font-size: ${toResponsiveUnit(this.config.fontSize)};
       color: ${this.config.color};
     `;
 
@@ -147,7 +149,7 @@ export class TickerElement extends BaseElement {
     super.updateConfig(newConfig);
 
     if (this.tickerContent) {
-      this.tickerContent.style.fontSize = `${this.config.fontSize}px`;
+      this.tickerContent.style.fontSize = toResponsiveUnit(this.config.fontSize);
       this.tickerContent.style.color = this.config.color;
     }
 

@@ -4,6 +4,8 @@ import { BaseElement } from '../core/BaseElement.js';
  * CounterElement - Displays a number with smooth lerp animation
  * Used for Total Sales and Total Orders
  */
+import { toResponsiveUnit } from '../utils/ResponsiveScale.js';
+
 export class CounterElement extends BaseElement {
   constructor(id, config) {
     super(id, {
@@ -48,7 +50,7 @@ export class CounterElement extends BaseElement {
   updateDisplayStyles() {
     if (!this.displayElement) return;
 
-    this.displayElement.style.fontSize = `${this.config.fontSize}px`;
+    this.displayElement.style.fontSize = toResponsiveUnit(this.config.fontSize);
     this.displayElement.style.color = this.config.color;
     this.displayElement.style.textAlign = 'center';
     this.displayElement.style.width = '100%';

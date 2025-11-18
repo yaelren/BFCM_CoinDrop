@@ -1,7 +1,10 @@
 /**
+/**
  * LayoutManager - Manages positioning and scaling of all dashboard elements
  * Coordinates reference resolution (4640x1760) to actual screen size
  */
+import { toResponsiveUnit } from '../utils/ResponsiveScale.js';
+
 export class LayoutManager {
   constructor(containerSelector, referenceWidth = 4640, referenceHeight = 1760) {
     this.container = document.querySelector(containerSelector);

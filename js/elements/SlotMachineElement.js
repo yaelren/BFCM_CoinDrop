@@ -5,6 +5,8 @@ import { BaseElement } from '../core/BaseElement.js';
  * Supports 3 animation styles: All Together, Sequential, Random
  * Used for Sale and Online GPV
  */
+import { toResponsiveUnit } from '../utils/ResponsiveScale.js';
+
 export class SlotMachineElement extends BaseElement {
   constructor(id, config) {
     super(id, {
@@ -29,7 +31,7 @@ export class SlotMachineElement extends BaseElement {
   createElement() {
     const container = document.createElement('div');
     container.className = 'slot-machine-element flex items-center justify-center font-mono font-bold';
-    container.style.fontSize = `${this.config.fontSize}px`;
+    container.style.fontSize = toResponsiveUnit(this.config.fontSize);
     container.style.color = this.config.color;
 
     return container;
@@ -232,7 +234,7 @@ export class SlotMachineElement extends BaseElement {
     super.updateConfig(newConfig);
 
     if (this.container) {
-      this.container.style.fontSize = `${this.config.fontSize}px`;
+      this.container.style.fontSize = toResponsiveUnit(this.config.fontSize);
       this.container.style.color = this.config.color;
     }
 

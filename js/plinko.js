@@ -3,6 +3,7 @@
 // Enhanced with dynamic controls and responsive design
 
 import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.19/dist/lil-gui.esm.min.js';
+import { getScaleFactor, toActualPixels, REFERENCE_WIDTH } from './utils/ResponsiveScale.js';
 
 // Matter.js module aliases
 const { Engine, World, Events, Bodies } = Matter;
@@ -65,6 +66,9 @@ let boundaries = [];
 let gui;
 let particleImages = [];
 const imageFiles = ['1_01.png', '1_02.png', '10_01.png', '10_02.png'];
+
+// Scale factor for responsive sizing
+let scaleFactor = 1;
 
 // Particle class
 class Particle {
@@ -235,11 +239,11 @@ function clearWorld() {
 function createPlinkos() {
   const spacing = width / params.cols;
   const centerX = width / 2;
-  const centerY = (height / 2) + params.boundaryCenterY;
-  const radius = params.boundaryRadius;
+  const centerY = (height / 2) + (params.boundaryCenterY * scaleFactor);
+  const radius = params.boundaryRadius * scaleFactor;
   
   // Calculate minimum clearance needed: particle size + safety margin
-  const minClearance = params.particleSize + 5;
+  const minClearance = (params.particleSize * scaleFactor) + 5;
 
   for (let j = 0; j < params.rows; j++) {
     for (let i = 0; i < params.cols + 1; i++) {
@@ -252,7 +256,7 @@ function createPlinkos() {
       // Only create peg if it's inside the boundary (or if no boundary)
       if (params.boundaryRadius <= 0) {
         // No boundary, create all pegs
-        const p = new Plinko(x, y, params.pegSize);
+        const p = new Plinko(x, y, params.pegSize * scaleFactor);
         plinkos.push(p);
       } else {
         // Check if peg is inside circular boundary with clearance for particles
@@ -262,7 +266,7 @@ function createPlinkos() {
 
         // Ensure peg is far enough from boundary to prevent particle jamming
         if (distance < radius - minClearance) {
-          const p = new Plinko(x, y, params.pegSize);
+          const p = new Plinko(x, y, params.pegSize * scaleFactor);
           plinkos.push(p);
         }
       }
@@ -277,13 +281,13 @@ function createBoundaries() {
   }
 
   const centerX = width / 2;
-  const centerY = (height / 2) + params.boundaryCenterY;
-  const radius = params.boundaryRadius;
-  const wallThickness = 30;
+  const centerY = (height / 2) + (params.boundaryCenterY * scaleFactor);
+  const radius = params.boundaryRadius * scaleFactor;
+  const wallThickness = 30 * scaleFactor;
   const numSegments = params.wallSegments;
 
   // Calculate tunnel angle range (bottom opening)
-  const tunnelAngleRange = Math.atan2(params.tunnelWidth / 2, radius) * 2;
+  const tunnelAngleRange = Math.atan2((params.tunnelWidth * scaleFactor) / 2, radius) * 2;
 
   // Store tunnel edge positions for vertical walls
   let leftTunnelX, rightTunnelX, tunnelY;
@@ -365,10 +369,10 @@ function clearAllParticles() {
 // Helper function to create new particle
 function newParticle() {
   const centerX = width / 2;
-  const randomOffset = (Math.random() - 0.5) * 2 * params.dropWidth;
+  const randomOffset = (Math.random() - 0.5) * 2 * (params.dropWidth * scaleFactor);
   const spawnX = centerX + randomOffset;
   const spawnY = -100; // Spawn 100px above canvas
-  const p = new Particle(spawnX, spawnY, params.particleSize);
+  const p = new Particle(spawnX, spawnY, params.particleSize * scaleFactor);
   particles.push(p);
 }
 
@@ -381,6 +385,10 @@ function updateCanvasSize() {
 
   const newWidth = window.innerWidth * (params.canvasWidthPercent / 100);
   const newHeight = window.innerHeight * (params.canvasHeightPercent / 100);
+
+  // Update scale factor based on dashboard size
+  const dashboard = document.querySelector('.led-dashboard');
+  scaleFactor = dashboard ? getScaleFactor(dashboard) : 1;
 
   resizeCanvas(newWidth, newHeight);
   regeneratePlinkoBoard();
@@ -515,6 +523,10 @@ function setup() {
   
   colorMode(HSB, 100);
 
+  // Calculate initial scale factor
+  const dashboard = document.querySelector('.led-dashboard');
+  scaleFactor = dashboard ? getScaleFactor(dashboard) : 1;
+
   // Initialize Matter.js physics engine
   engine = Engine.create();
   world = engine.world;
@@ -538,11 +550,11 @@ function draw() {
   // Draw background circle inside boundary (if not transparent)
   if (params.boundaryRadius > 0 && !params.backgroundTransparent) {
     const centerX = width / 2;
-    const centerY = (height / 2) + params.boundaryCenterY;
+    const centerY = (height / 2) + (params.boundaryCenterY * scaleFactor);
 
     noStroke();
     fill(params.backgroundColor);
-    ellipse(centerX, centerY, params.boundaryRadius * 2, params.boundaryRadius * 2);
+    ellipse(centerX, centerY, params.boundaryRadius * scaleFactor * 2, params.boundaryRadius * scaleFactor * 2);
   }
 
   // Spawn new particles at regular intervals

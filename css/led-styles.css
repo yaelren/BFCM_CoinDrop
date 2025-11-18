@@ -16,6 +16,18 @@ body {
 }
 
 .led-dashboard {
+    /* Container query setup for responsive sizing */
+    container-type: size;
+    container-name: dashboard;
+    
+    /* Responsive sizing custom properties */
+    /* Reference design: 4640px width × 1760px height */
+    --design-width: 4640;
+    --px: calc(100cqw / var(--design-width)); /* 1 design pixel = X container query units */
+    
+    /* Fallback for browsers without container query support */
+    --viewport-scale: 1vw;
+    
     aspect-ratio: 4640 / 1760;
     width: 100vw;
     height: 100vh;
@@ -29,8 +41,16 @@ body {
     overflow: hidden;
 }
 
+/* Update fallback for aspect-ratio constrained viewports */
 @media (min-aspect-ratio: 4640/1760) {
     .led-dashboard {
+        --viewport-scale: calc(1vh * 4640 / 1760 / 100);
+    }
+}
+
+@media (min-aspect-ratio: 4640/1760) {
+    .led-dashboard {
+        --viewport-scale: calc(1vh * 4640 / 1760 / 100);
         width: calc(100vh * 4640 / 1760);
         height: 100vh;
         max-width: calc(100vh * 4640 / 1760);
