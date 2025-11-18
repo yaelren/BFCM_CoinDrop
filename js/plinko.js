@@ -5,6 +5,11 @@
 import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.19/dist/lil-gui.esm.min.js';
 import { getScaleFactor, toActualPixels, REFERENCE_WIDTH } from './utils/ResponsiveScale.js';
 
+// Plinko-specific reference dimensions
+// At reference dashboard size (4640px), the Plinko canvas is 47% of viewport
+// Assuming viewport matches dashboard, reference canvas width = 4640 * 0.47 ≈ 2180px
+const PLINKO_REFERENCE_WIDTH = 2180;
+
 // Matter.js module aliases
 const { Engine, World, Events, Bodies } = Matter;
 
@@ -386,9 +391,9 @@ function updateCanvasSize() {
   const newWidth = window.innerWidth * (params.canvasWidthPercent / 100);
   const newHeight = window.innerHeight * (params.canvasHeightPercent / 100);
 
-  // Update scale factor based on dashboard size
-  const dashboard = document.querySelector('.led-dashboard');
-  scaleFactor = dashboard ? getScaleFactor(dashboard) : 1;
+  // Update scale factor based on CANVAS width, not dashboard width
+  // This ensures Plinko elements scale with the canvas itself
+  scaleFactor = newWidth / PLINKO_REFERENCE_WIDTH;
 
   resizeCanvas(newWidth, newHeight);
   regeneratePlinkoBoard();
@@ -496,6 +501,21 @@ function setupGUI() {
   // Actions
   gui.add(params, 'resetGame').name('Reset Game');
   gui.add(params, 'clearParticles').name('Clear Particles');
+  
+  // Debug function to show scale info
+  const debugFolder = gui.addFolder('Debug');
+  debugFolder.add({ 
+    logScale: () => {
+      console.log('=== Plinko Scale Info ===');
+      console.log(`Canvas Width: ${width.toFixed(0)}px`);
+      console.log(`Reference Width: ${PLINKO_REFERENCE_WIDTH}px`);
+      console.log(`Scale Factor: ${scaleFactor.toFixed(4)}`);
+      console.log(`boundaryRadius: ${params.boundaryRadius} → ${(params.boundaryRadius * scaleFactor).toFixed(2)}px`);
+      console.log(`tunnelWidth: ${params.tunnelWidth} → ${(params.tunnelWidth * scaleFactor).toFixed(2)}px`);
+      console.log(`particleSize: ${params.particleSize} → ${(params.particleSize * scaleFactor).toFixed(2)}px`);
+      console.log('========================');
+    }
+  }, 'logScale').name('Log Scale Info');
 
   // Open important folders by default
   canvasFolder.open();
@@ -523,9 +543,9 @@ function setup() {
   
   colorMode(HSB, 100);
 
-  // Calculate initial scale factor
-  const dashboard = document.querySelector('.led-dashboard');
-  scaleFactor = dashboard ? getScaleFactor(dashboard) : 1;
+  // Calculate initial scale factor based on canvas width
+  const canvasWidth = window.innerWidth * (params.canvasWidthPercent / 100);
+  scaleFactor = canvasWidth / PLINKO_REFERENCE_WIDTH;
 
   // Initialize Matter.js physics engine
   engine = Engine.create();
