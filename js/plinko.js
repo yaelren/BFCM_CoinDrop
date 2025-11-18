@@ -31,6 +31,7 @@ const params = {
   backgroundColor: '#d6d6d6', // background color inside boundary
   backgroundTransparent: false, // toggle transparent background
   boundariesVisible: true, // toggle boundary wall visibility
+  showClearanceZone: false, // show visual indicator of peg clearance zone
 
   // Peg configuration
   pegSize: 6,
@@ -247,8 +248,9 @@ function createPlinkos() {
   const centerY = (height / 2) + (params.boundaryCenterY * scaleFactor);
   const radius = params.boundaryRadius * scaleFactor;
   
-  // Calculate minimum clearance needed: particle size + safety margin
-  const minClearance = (params.particleSize * scaleFactor) + 5;
+  // Calculate minimum clearance needed: particle size + peg size + safety margin
+  // This ensures particles can pass between pegs and boundary without jamming
+  const minClearance = (params.particleSize * scaleFactor) + (params.pegSize * scaleFactor) + (10 * scaleFactor);
 
   for (let j = 0; j < params.rows; j++) {
     for (let i = 0; i < params.cols + 1; i++) {
@@ -441,6 +443,8 @@ function setupGUI() {
     .name('Transparent BG');
   boundaryFolder.addColor(params, 'backgroundColor')
     .name('Background Color');
+  boundaryFolder.add(params, 'showClearanceZone')
+    .name('Show Clearance Zone');
 
   // Peg folder
   const pegFolder = gui.addFolder('Pegs');
@@ -506,13 +510,22 @@ function setupGUI() {
   const debugFolder = gui.addFolder('Debug');
   debugFolder.add({ 
     logScale: () => {
+      const actualRadius = params.boundaryRadius * scaleFactor;
+      const actualParticleSize = params.particleSize * scaleFactor;
+      const actualPegSize = params.pegSize * scaleFactor;
+      const minClearance = actualParticleSize + actualPegSize + (10 * scaleFactor);
+      
       console.log('=== Plinko Scale Info ===');
       console.log(`Canvas Width: ${width.toFixed(0)}px`);
       console.log(`Reference Width: ${PLINKO_REFERENCE_WIDTH}px`);
       console.log(`Scale Factor: ${scaleFactor.toFixed(4)}`);
-      console.log(`boundaryRadius: ${params.boundaryRadius} → ${(params.boundaryRadius * scaleFactor).toFixed(2)}px`);
+      console.log(`boundaryRadius: ${params.boundaryRadius} → ${actualRadius.toFixed(2)}px`);
       console.log(`tunnelWidth: ${params.tunnelWidth} → ${(params.tunnelWidth * scaleFactor).toFixed(2)}px`);
-      console.log(`particleSize: ${params.particleSize} → ${(params.particleSize * scaleFactor).toFixed(2)}px`);
+      console.log(`particleSize: ${params.particleSize} → ${actualParticleSize.toFixed(2)}px`);
+      console.log(`pegSize: ${params.pegSize} → ${actualPegSize.toFixed(2)}px`);
+      console.log(`Minimum clearance: ${minClearance.toFixed(2)}px`);
+      console.log(`Pegs will render if distance < ${(actualRadius - minClearance).toFixed(2)}px from center`);
+      console.log(`Total pegs created: ${plinkos.length}`);
       console.log('========================');
     }
   }, 'logScale').name('Log Scale Info');
@@ -575,6 +588,20 @@ function draw() {
     noStroke();
     fill(params.backgroundColor);
     ellipse(centerX, centerY, params.boundaryRadius * scaleFactor * 2, params.boundaryRadius * scaleFactor * 2);
+  }
+
+  // Draw clearance zone (debug visualization)
+  if (params.showClearanceZone && params.boundaryRadius > 0) {
+    const centerX = width / 2;
+    const centerY = (height / 2) + (params.boundaryCenterY * scaleFactor);
+    const radius = params.boundaryRadius * scaleFactor;
+    const minClearance = (params.particleSize * scaleFactor) + (params.pegSize * scaleFactor) + (10 * scaleFactor);
+    const clearanceRadius = radius - minClearance;
+
+    stroke(255, 0, 0, 128); // Red semi-transparent
+    strokeWeight(2);
+    noFill();
+    ellipse(centerX, centerY, clearanceRadius * 2, clearanceRadius * 2);
   }
 
   // Spawn new particles at regular intervals
