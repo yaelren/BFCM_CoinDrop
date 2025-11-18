@@ -120,14 +120,18 @@ export class MapElement extends BaseElement {
           const b = parseInt(hex.substr(4, 2), 16);
           p.fill(r, g, b, dot.alpha);
 
+          // Responsive dot size
+          const scaleFactor = this.getScaleFactor();
+          const responsiveDotSize = this.config.dotSize * scaleFactor;
+
           // Pulse effect
-          const pulseSize = this.config.dotSize + Math.sin(currentTime * 0.005 + dot.timestamp * 0.01) * 2;
+          const pulseSize = responsiveDotSize + Math.sin(currentTime * 0.005 + dot.timestamp * 0.01) * 2 * scaleFactor;
           p.ellipse(dot.x, dot.y, pulseSize, pulseSize);
 
           // Outer ring
           p.noFill();
           p.stroke(r, g, b, dot.alpha * 0.5);
-          p.strokeWeight(2);
+          p.strokeWeight(2 * scaleFactor);
           p.ellipse(dot.x, dot.y, pulseSize * 1.5, pulseSize * 1.5);
         }
       };
@@ -278,22 +282,28 @@ export class MapElement extends BaseElement {
   }
 
   /**
+   * Get responsive scale factor based on container size
+   */
+  getScaleFactor() {
+    const containerWidth = this.container ? this.container.offsetWidth : 713;
+    return containerWidth / 713; // 713 is reference width from config
+  }
+
+  /**
    * Update location label styling based on config and container size
    */
   updateLocationLabelStyle() {
     if (!this.locationLabel) return;
 
-    // Calculate responsive font size based on container width
-    const containerWidth = this.container ? this.container.offsetWidth : 713;
-    const scaleFactor = containerWidth / 713; // 713 is reference width from config
+    const scaleFactor = this.getScaleFactor();
     const responsiveFontSize = Math.round(this.config.locationLabelFontSize * scaleFactor);
+    const responsiveOffset = Math.round(this.config.locationLabelOffset * scaleFactor);
 
     const position = this.config.locationLabelPosition === 'top' ? 'top' : 'bottom';
-    const offset = this.config.locationLabelOffset;
 
     this.locationLabel.style.cssText = `
       position: absolute;
-      ${position}: ${offset}px;
+      ${position}: ${responsiveOffset}px;
       left: 50%;
       transform: translateX(-50%);
       padding: 0;
