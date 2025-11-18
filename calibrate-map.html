@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Map Calibration Tool</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a2e;
+      color: #fff;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #e94560;
+    }
+
+    .instructions {
+      background: #0f3460;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .instructions h2 {
+      color: #e94560;
+      margin-bottom: 10px;
+    }
+
+    .instructions ol {
+      margin-left: 20px;
+      line-height: 1.8;
+    }
+
+    .map-container {
+      position: relative;
+      display: inline-block;
+      background: #16213e;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      cursor: crosshair;
+    }
+
+    #mapImage {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .calibration-point {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: #e94560;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      animation: pulse 1.5s ease-in-out infinite;
+      z-index: 10;
+    }
+
+    .calibration-label {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      transform: translate(-50%, -30px);
+      pointer-events: none;
+      z-index: 11;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.2); }
+    }
+
+    .controls {
+      background: #0f3460;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .city-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      background: #e94560;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: #ff6b81;
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    button.selected {
+      background: #00d9ff;
+    }
+
+    .output {
+      background: #16213e;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .output h3 {
+      color: #00d9ff;
+      margin-bottom: 10px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .copy-button {
+      background: #00d9ff;
+      margin-top: 10px;
+    }
+
+    .copy-button:hover {
+      background: #00b8d4;
+    }
+
+    .status {
+      text-align: center;
+      padding: 10px;
+      background: #16213e;
+      border-radius: 6px;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+
+    .status.ready {
+      color: #00d9ff;
+    }
+
+    .status.waiting {
+      color: #ffa726;
+    }
+
+    code {
+      color: #00d9ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🗺️ Map Calibration Tool</h1>
+
+    <div class="instructions">
+      <h2>📍 How to Calibrate Your Map</h2>
+      <ol>
+        <li>Click a city button below (e.g., "New York")</li>
+        <li>Click on your map image where that city is located</li>
+        <li>Repeat for at least 2 cities (more = better accuracy)</li>
+        <li>Copy the generated configuration code</li>
+        <li>Paste into your led-dashboard.js map config</li>
+      </ol>
+    </div>
+
+    <div class="map-container" id="mapContainer">
+      <img id="mapImage" src="assets/world-map.png" alt="World Map">
+    </div>
+
+    <div class="controls">
+      <div class="status waiting" id="status">
+        Select a city below, then click its location on the map
+      </div>
+
+      <h3 style="margin: 20px 0 10px 0; color: #e94560;">Select City to Calibrate:</h3>
+      <div class="city-buttons" id="cityButtons"></div>
+
+      <button onclick="resetCalibration()" style="width: 100%; margin-top: 10px;">Reset All Points</button>
+
+      <div class="output" id="output" style="display: none;">
+        <h3>✅ Generated Configuration</h3>
+        <pre id="configCode"></pre>
+        <button class="copy-button" onclick="copyConfig()">📋 Copy to Clipboard</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Known city coordinates
+    const cities = [
+      { name: 'New York', lat: 40.7128, lon: -74.0060, region: 'USA' },
+      { name: 'Los Angeles', lat: 34.0522, lon: -118.2437, region: 'USA' },
+      { name: 'Chicago', lat: 41.8781, lon: -87.6298, region: 'USA' },
+      { name: 'London', lat: 51.5074, lon: -0.1278, region: 'Europe' },
+      { name: 'Paris', lat: 48.8566, lon: 2.3522, region: 'Europe' },
+      { name: 'Rome', lat: 41.9028, lon: 12.4964, region: 'Europe' },
+      { name: 'Berlin', lat: 52.5200, lon: 13.4050, region: 'Europe' },
+      { name: 'Tokyo', lat: 35.6762, lon: 139.6503, region: 'Asia' },
+      { name: 'Sydney', lat: -33.8688, lon: 151.2093, region: 'Australia' },
+      { name: 'Mumbai', lat: 19.0760, lon: 72.8777, region: 'Asia' },
+      { name: 'São Paulo', lat: -23.5505, lon: -46.6333, region: 'S.America' },
+      { name: 'Cairo', lat: 30.0444, lon: 31.2357, region: 'Africa' }
+    ];
+
+    let selectedCity = null;
+    let calibrationPoints = [];
+    const mapContainer = document.getElementById('mapContainer');
+    const mapImage = document.getElementById('mapImage');
+    const status = document.getElementById('status');
+    const output = document.getElementById('output');
+    const configCode = document.getElementById('configCode');
+
+    // Create city buttons
+    const cityButtons = document.getElementById('cityButtons');
+    cities.forEach(city => {
+      const button = document.createElement('button');
+      button.textContent = `${city.name} (${city.region})`;
+      button.dataset.cityName = city.name;
+      button.onclick = () => selectCity(city);
+      cityButtons.appendChild(button);
+    });
+
+    function selectCity(city) {
+      selectedCity = city;
+
+      // Update button states
+      document.querySelectorAll('.city-buttons button').forEach(btn => {
+        btn.classList.remove('selected');
+        if (btn.dataset.cityName === city.name) {
+          btn.classList.add('selected');
+        }
+      });
+
+      status.textContent = `Click on the map where ${city.name} is located`;
+      status.className = 'status ready';
+    }
+
+    // Handle map clicks
+    mapContainer.addEventListener('click', (e) => {
+      if (!selectedCity) {
+        alert('Please select a city first!');
+        return;
+      }
+
+      const rect = mapImage.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // Check if this city already has a point
+      const existingIndex = calibrationPoints.findIndex(p => p.name === selectedCity.name);
+      if (existingIndex !== -1) {
+        // Remove existing point
+        const existingMarker = document.querySelector(`[data-city="${selectedCity.name}"]`);
+        if (existingMarker) {
+          existingMarker.remove();
+          const existingLabel = document.querySelector(`[data-city-label="${selectedCity.name}"]`);
+          if (existingLabel) existingLabel.remove();
+        }
+        calibrationPoints.splice(existingIndex, 1);
+      }
+
+      // Add calibration point
+      const point = {
+        name: selectedCity.name,
+        lat: selectedCity.lat,
+        lon: selectedCity.lon,
+        x: x,
+        y: y
+      };
+      calibrationPoints.push(point);
+
+      // Create visual marker
+      const marker = document.createElement('div');
+      marker.className = 'calibration-point';
+      marker.dataset.city = selectedCity.name;
+      marker.style.left = `${x}px`;
+      marker.style.top = `${y}px`;
+
+      const label = document.createElement('div');
+      label.className = 'calibration-label';
+      label.dataset.cityLabel = selectedCity.name;
+      label.textContent = selectedCity.name;
+      label.style.left = `${x}px`;
+      label.style.top = `${y}px`;
+
+      mapContainer.appendChild(marker);
+      mapContainer.appendChild(label);
+
+      // Disable this city's button
+      const button = document.querySelector(`[data-city-name="${selectedCity.name}"]`);
+      if (button) button.disabled = true;
+
+      // Update status
+      status.textContent = `✓ ${selectedCity.name} calibrated! ${calibrationPoints.length >= 2 ? 'Select another city or scroll down for code' : 'Select at least one more city'}`;
+      status.className = calibrationPoints.length >= 2 ? 'status ready' : 'status waiting';
+
+      selectedCity = null;
+      document.querySelectorAll('.city-buttons button').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+
+      // Generate config if we have enough points
+      if (calibrationPoints.length >= 2) {
+        generateConfig();
+      }
+    });
+
+    function generateConfig() {
+      // Format calibration points
+      const pointsCode = calibrationPoints.map(p =>
+        `    { name: '${p.name}', lat: ${p.lat}, lon: ${p.lon}, x: ${p.x.toFixed(1)}, y: ${p.y.toFixed(1)} }`
+      ).join(',\n');
+
+      const config = `// Copy this into led-dashboard.js location config
+location: {
+  type: 'map',
+  x: 134,
+  y: 678,
+  width: 713,
+  height: 534,
+  visible: true,
+  zIndex: 5,
+  background: { color: '#0a0a1a', opacity: 0.5 },
+  config: {
+    mapImage: 'assets/world-map.png',
+    projection: 'calibrated',  // ← Changed to calibrated
+    calibrationPoints: [        // ← Added calibration points
+${pointsCode}
+    ],
+    dotSize: 27,
+    dotColor: '#FF0080',
+    dotFadeDuration: 8000,
+    showLocationLabel: true,
+    locationLabelDuration: 5000
+  }
+}`;
+
+      configCode.textContent = config;
+      output.style.display = 'block';
+    }
+
+    function resetCalibration() {
+      calibrationPoints = [];
+      selectedCity = null;
+
+      // Remove all markers
+      document.querySelectorAll('.calibration-point, .calibration-label').forEach(el => el.remove());
+
+      // Reset buttons
+      document.querySelectorAll('.city-buttons button').forEach(btn => {
+        btn.disabled = false;
+        btn.classList.remove('selected');
+      });
+
+      status.textContent = 'Select a city below, then click its location on the map';
+      status.className = 'status waiting';
+      output.style.display = 'none';
+    }
+
+    function copyConfig() {
+      navigator.clipboard.writeText(configCode.textContent).then(() => {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = '✓ Copied!';
+        btn.style.background = '#4caf50';
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.style.background = '';
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

@@ -306,6 +306,40 @@ export class LayoutManager {
             .name('Dot Fade (ms, 0=stay)')
             .onChange(() => element.updateConfig(config));
         }
+
+        // Location Label Controls
+        const labelFolder = folder.addFolder('Location Label');
+
+        if (config.showLocationLabel !== undefined) {
+          labelFolder.add(config, 'showLocationLabel')
+            .name('Show Label')
+            .onChange(() => element.updateConfig(config));
+        }
+        if (config.locationLabelFontSize !== undefined) {
+          labelFolder.add(config, 'locationLabelFontSize', 12, 100, 1)
+            .name('Font Size')
+            .onChange(() => element.updateConfig(config));
+        }
+        if (config.locationLabelColor) {
+          labelFolder.addColor(config, 'locationLabelColor')
+            .name('Text Color')
+            .onChange(() => element.updateConfig(config));
+        }
+        if (config.locationLabelPosition !== undefined) {
+          labelFolder.add(config, 'locationLabelPosition', { Bottom: 'bottom', Top: 'top' })
+            .name('Position')
+            .onChange(() => element.updateConfig(config));
+        }
+        if (config.locationLabelOffset !== undefined) {
+          labelFolder.add(config, 'locationLabelOffset', 0, 50, 1)
+            .name('Offset (px)')
+            .onChange(() => element.updateConfig(config));
+        }
+        if (config.locationLabelDuration !== undefined) {
+          labelFolder.add(config, 'locationLabelDuration', 0, 10000, 100)
+            .name('Duration (ms, 0=stay)')
+            .onChange(() => element.updateConfig(config));
+        }
         break;
 
       case 'p5':

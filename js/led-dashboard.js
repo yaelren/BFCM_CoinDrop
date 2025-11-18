@@ -36,19 +36,34 @@ const ELEMENT_CONFIGS = {
   location: {
     type: 'map',
     x: 134,
-    y: 678,
+    y: 657,
     width: 713,
-    height: 534,
+    height: 469,
     visible: true,
     zIndex: 5,
-    background: { color: '#0a0a1a', opacity: 0.5 },
+    background: { color: '#0a0a1a', opacity: 0 },
     config: {
-      mapImage: null,
+      mapImage: 'assets/world-map.png',
+      projection: 'calibrated',
+      calibrationPoints: [
+        { name: 'Chicago', lat: 41.8781, lon: -87.6298, x: 388.5, y: 250.5 },
+        { name: 'Los Angeles', lat: 34.0522, lon: -118.2437, x: 252.5, y: 285.5 },
+        { name: 'London', lat: 51.5074, lon: -0.1278, x: 676.5, y: 221.5 },
+        { name: 'Rome', lat: 41.9028, lon: 12.4964, x: 715.5, y: 259.5 },
+        { name: 'Tokyo', lat: 35.6762, lon: 139.6503, x: 1138.5, y: 405.5 },
+        { name: 'Cairo', lat: 30.0444, lon: 31.2357, x: 766.5, y: 313.5 },
+        { name: 'São Paulo', lat: -23.5505, lon: -46.6333, x: 501.5, y: 538.5 },
+        { name: 'Mumbai', lat: 19.0760, lon: 72.8777, x: 937.5, y: 356.5 }
+      ],
       dotSize: 27,
       dotColor: '#FF0080',
-      dotFadeDuration: 3000,
-      mode3D: false,
-      rotationSpeed: 0.5
+      dotFadeDuration: 8000,
+      showLocationLabel: true,
+      locationLabelDuration: 5000,
+      locationLabelFontSize: 32,
+      locationLabelColor: '#333333',
+      locationLabelPosition: 'bottom',
+      locationLabelOffset: 10
     }
   },
 
@@ -266,6 +281,27 @@ class LEDDashboard {
     const stores = ['Nike Store', 'Apple Store', 'Amazon', 'Best Buy', 'Target', 'Walmart', 'Costco'];
     const randomStore = stores[Math.floor(Math.random() * stores.length)];
 
+    // Real world locations with city/state/country
+    const locations = [
+      { lat: 40.7128, lon: -74.0060, city: 'New York', state: 'NY', country: 'USA' },
+      { lat: 34.0522, lon: -118.2437, city: 'Los Angeles', state: 'CA', country: 'USA' },
+      { lat: 41.8781, lon: -87.6298, city: 'Chicago', state: 'IL', country: 'USA' },
+      { lat: 51.5074, lon: -0.1278, city: 'London', country: 'UK' },
+      { lat: 48.8566, lon: 2.3522, city: 'Paris', country: 'France' },
+      { lat: 41.9028, lon: 12.4964, city: 'Rome', country: 'Italy' },
+      { lat: 52.5200, lon: 13.4050, city: 'Berlin', country: 'Germany' },
+      { lat: 35.6762, lon: 139.6503, city: 'Tokyo', country: 'Japan' },
+      { lat: -33.8688, lon: 151.2093, city: 'Sydney', country: 'Australia' },
+      { lat: 19.0760, lon: 72.8777, city: 'Mumbai', country: 'India' },
+      { lat: -23.5505, lon: -46.6333, city: 'São Paulo', country: 'Brazil' },
+      { lat: 30.0444, lon: 31.2357, city: 'Cairo', country: 'Egypt' },
+      { lat: 55.7558, lon: 37.6173, city: 'Moscow', country: 'Russia' },
+      { lat: 39.9042, lon: 116.4074, city: 'Beijing', country: 'China' },
+      { lat: 25.2048, lon: 55.2708, city: 'Dubai', country: 'UAE' }
+    ];
+
+    const randomLocation = locations[Math.floor(Math.random() * locations.length)];
+
     // Add store name to ticker
     this.elements.storeName.addName(randomStore);
 
@@ -282,24 +318,34 @@ class LEDDashboard {
     // Online GPV shows latest order value (not cumulative)
     this.elements.onlineGPV.updateData(newOrderValue);
 
-    // Add random location dot
-    const randomLat = (Math.random() * 170) - 85; // -85 to 85
-    const randomLon = (Math.random() * 360) - 180; // -180 to 180
-    this.elements.location.addDot(randomLat, randomLon);
+    // Add location dot with city/country label
+    this.elements.location.updateData(randomLocation);
 
-    console.log(`📦 New Order: ${randomStore} - $${newOrderValue}`);
+    console.log(`📦 New Order: ${randomStore} - $${newOrderValue} from ${randomLocation.city}, ${randomLocation.country}`);
   }
 
   /**
    * Update element data from API
    * This is where you'll wire up your real API calls
+   *
+   * Example location data format:
+   * {
+   *   location: {
+   *     lat: 40.7128,
+   *     lon: -74.0060,
+   *     city: 'New York',
+   *     state: 'NY',       // Optional (for US locations)
+   *     country: 'USA'     // Optional but recommended
+   *   }
+   * }
    */
   updateFromAPI(data) {
     if (data.storeName) {
       this.elements.storeName.updateData(data.storeName);
     }
 
-    if (data.location && data.location.lat && data.location.lon) {
+    if (data.location && data.location.lat !== undefined && data.location.lon !== undefined) {
+      // Pass full location object with city/state/country for label
       this.elements.location.updateData(data.location);
     }
 
@@ -337,12 +383,23 @@ class LEDDashboard {
 ║  🐛 DEBUG MODE:                                               ║
 ║  • Toggle "Debug Mode" to see element boundaries             ║
 ║                                                               ║
+║  🗺️ MAP & LOCATION LABELS:                                   ║
+║  • Dots appear at precise geographic coordinates             ║
+║  • Location label shows below map: "City, State, Country"    ║
+║  • Include city/country in API data for labels to display    ║
+║                                                               ║
 ║  🔌 API INTEGRATION:                                          ║
 ║  • Use dashboard.updateFromAPI(data) to update elements      ║
-║  • Example:                                                   ║
+║  • Example with location label:                              ║
 ║    dashboard.updateFromAPI({                                  ║
 ║      storeName: 'Nike Store',                                 ║
-║      location: { lat: 40.7128, lon: -74.0060 },              ║
+║      location: {                                              ║
+║        lat: 40.7128,                                          ║
+║        lon: -74.0060,                                         ║
+║        city: 'New York',                                      ║
+║        state: 'NY',                                           ║
+║        country: 'USA'                                         ║
+║      },                                                       ║
 ║      totalSales: 125000,                                      ║
 ║      sale: 2500                                               ║
 ║    });                                                        ║
