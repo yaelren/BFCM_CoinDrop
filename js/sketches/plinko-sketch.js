@@ -201,7 +201,7 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
           const distance = Math.sqrt(dx * dx + dy * dy);
 
           // Calculate clearance: particle size + peg size + safety margin (all scaled)
-          const minClearance = (config.particleSize * scaleFactor) + (config.pegSize * scaleFactor) + (10 * scaleFactor);
+          const minClearance = (config.particleSize * scaleFactor) + (12 *scaleFactor);
           if (distance < radius - minClearance) {
             plinkos.push(new Plinko(x, y, config.pegSize * scaleFactor));
           }
@@ -368,7 +368,7 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
         const centerX = p.width / 2;
         const centerY = (p.height / 2) + (config.boundaryCenterY * scaleFactor);
         const radius = config.boundaryRadius * scaleFactor;
-        const minClearance = (config.particleSize * scaleFactor) + (config.pegSize * scaleFactor) + (10 * scaleFactor);
+        const minClearance = (config.particleSize * scaleFactor) + (12 *scaleFactor);
         const clearanceRadius = radius - minClearance;
 
         p.push();
