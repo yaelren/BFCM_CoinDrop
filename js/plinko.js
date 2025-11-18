@@ -590,20 +590,6 @@ function draw() {
     ellipse(centerX, centerY, params.boundaryRadius * scaleFactor * 2, params.boundaryRadius * scaleFactor * 2);
   }
 
-  // Draw clearance zone (debug visualization)
-  if (params.showClearanceZone && params.boundaryRadius > 0) {
-    const centerX = width / 2;
-    const centerY = (height / 2) + (params.boundaryCenterY * scaleFactor);
-    const radius = params.boundaryRadius * scaleFactor;
-    const minClearance = (params.particleSize * scaleFactor) + (params.pegSize * scaleFactor) + (10 * scaleFactor);
-    const clearanceRadius = radius - minClearance;
-
-    stroke(255, 0, 0, 128); // Red semi-transparent
-    strokeWeight(2);
-    noFill();
-    ellipse(centerX, centerY, clearanceRadius * 2, clearanceRadius * 2);
-  }
-
   // Spawn new particles at regular intervals
   if (frameCount % params.particleSpawnRate === 0 &&
       particles.length < params.maxParticles) {
@@ -630,6 +616,29 @@ function draw() {
   // Render boundaries
   for (let i = 0; i < boundaries.length; i++) {
     boundaries[i].show();
+  }
+
+  // Draw clearance zone LAST (debug visualization - on top of everything)
+  if (params.showClearanceZone && params.boundaryRadius > 0) {
+    const centerX = width / 2;
+    const centerY = (height / 2) + (params.boundaryCenterY * scaleFactor);
+    const radius = params.boundaryRadius * scaleFactor;
+    const minClearance = (params.particleSize * scaleFactor) + (params.pegSize * scaleFactor) + (10 * scaleFactor);
+    const clearanceRadius = radius - minClearance;
+
+    push();
+    stroke(255, 0, 0); // Bright red
+    strokeWeight(3);
+    noFill();
+    ellipse(centerX, centerY, clearanceRadius * 2, clearanceRadius * 2);
+    
+    // Add text label
+    fill(255, 0, 0);
+    noStroke();
+    textAlign(CENTER, CENTER);
+    textSize(16);
+    text(`Clearance Zone: ${clearanceRadius.toFixed(0)}px`, centerX, centerY - clearanceRadius - 20);
+    pop();
   }
 }
 
