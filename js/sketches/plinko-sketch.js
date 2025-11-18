@@ -32,6 +32,7 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
     // Visibility controls
     showBoundaries: externalConfig.showBoundaries ?? true,
     showPegs: externalConfig.showPegs ?? true,
+    showClearanceZone: externalConfig.showClearanceZone ?? false,
     // Particle physics
     particleRestitution: externalConfig.particleRestitution ?? 0.1,
     particleFriction: externalConfig.particleFriction ?? 0.55,
@@ -191,7 +192,9 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
           const dy = y - centerY;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
-          if (distance < radius - config.pegSize) {
+          // Calculate clearance: particle size + peg size + safety margin
+          const minClearance = config.particleSize + config.pegSize + 10;
+          if (distance < radius - minClearance) {
             plinkos.push(new Plinko(x, y, config.pegSize));
           }
         }
@@ -346,6 +349,29 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
       }
       if (config.showBoundaries) {
         boundaries.forEach(boundary => boundary.show());
+      }
+
+      // Draw clearance zone (debug visualization)
+      if (config.showClearanceZone && config.boundaryRadius > 0) {
+        const centerX = p.width / 2;
+        const centerY = (p.height / 2) + config.boundaryCenterY;
+        const radius = config.boundaryRadius;
+        const minClearance = config.particleSize + config.pegSize + 10;
+        const clearanceRadius = radius - minClearance;
+
+        p.push();
+        p.stroke(255, 0, 0); // Bright red
+        p.strokeWeight(3);
+        p.noFill();
+        p.ellipse(centerX, centerY, clearanceRadius * 2);
+        
+        // Add text label
+        p.fill(255, 0, 0);
+        p.noStroke();
+        p.textAlign(p.CENTER, p.CENTER);
+        p.textSize(16);
+        p.text(`Clearance Zone: ${clearanceRadius.toFixed(0)}px`, centerX, centerY - clearanceRadius - 20);
+        p.pop();
       }
     },
 

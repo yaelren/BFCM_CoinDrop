@@ -87,7 +87,8 @@ const ELEMENT_CONFIGS = {
       pegFriction: 0,
       // Visibility settings
       showBoundaries: true,
-      showPegs: true
+      showPegs: true,
+      showClearanceZone: false
     }
   },
 
