@@ -7,6 +7,14 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
   // Matter.js aliases
   const { Engine, World, Bodies } = Matter;
 
+  // Reference dimensions for responsive scaling
+  // Based on LED Dashboard reference size (4640x1760)
+  const REFERENCE_WIDTH = 4640;
+  const REFERENCE_HEIGHT = 1760;
+  
+  // Scale factor - will be calculated based on actual canvas size
+  let scaleFactor = 1;
+
   // Sketch variables
   let engine, world;
   let particles = [];
@@ -174,8 +182,8 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
     const config = getConfig();
     const spacing = p.width / config.cols;
     const centerX = p.width / 2;
-    const centerY = (p.height / 2) + config.boundaryCenterY;
-    const radius = config.boundaryRadius;
+    const centerY = (p.height / 2) + (config.boundaryCenterY * scaleFactor);
+    const radius = config.boundaryRadius * scaleFactor;
 
     for (let j = 0; j < config.rows; j++) {
       for (let i = 0; i < config.cols + 1; i++) {
@@ -186,16 +194,16 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
         const y = spacing + j * spacing;
 
         if (config.boundaryRadius <= 0) {
-          plinkos.push(new Plinko(x, y, config.pegSize));
+          plinkos.push(new Plinko(x, y, config.pegSize * scaleFactor));
         } else {
           const dx = x - centerX;
           const dy = y - centerY;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
-          // Calculate clearance: particle size + peg size + safety margin
-          const minClearance = config.particleSize + config.pegSize + 10;
+          // Calculate clearance: particle size + peg size + safety margin (all scaled)
+          const minClearance = (config.particleSize * scaleFactor) + (config.pegSize * scaleFactor) + (10 * scaleFactor);
           if (distance < radius - minClearance) {
-            plinkos.push(new Plinko(x, y, config.pegSize));
+            plinkos.push(new Plinko(x, y, config.pegSize * scaleFactor));
           }
         }
       }
@@ -208,11 +216,11 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
     if (config.boundaryRadius <= 0) return;
 
     const centerX = p.width / 2;
-    const centerY = (p.height / 2) + config.boundaryCenterY;
-    const radius = config.boundaryRadius;
-    const wallThickness = 30;
+    const centerY = (p.height / 2) + (config.boundaryCenterY * scaleFactor);
+    const radius = config.boundaryRadius * scaleFactor;
+    const wallThickness = 30 * scaleFactor;
     const numSegments = 200;
-    const tunnelAngleRange = Math.atan2(config.tunnelWidth / 2, radius) * 2;
+    const tunnelAngleRange = Math.atan2((config.tunnelWidth * scaleFactor) / 2, radius) * 2;
 
     let leftTunnelX, rightTunnelX, tunnelY;
 
@@ -283,6 +291,10 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
       p.createCanvas(container.offsetWidth, container.offsetHeight);
       p.colorMode(p.HSB, 100);
 
+      // Calculate scale factor based on canvas width relative to reference
+      scaleFactor = p.width / REFERENCE_WIDTH;
+      console.log(`Plinko scale factor: ${scaleFactor.toFixed(4)} (canvas: ${p.width}px, ref: ${REFERENCE_WIDTH}px)`);
+
       engine = Engine.create();
       world = engine.world;
       world.gravity.y = getConfig().gravity;
@@ -292,7 +304,7 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
 
       // Create initial particle
       const centerX = p.width / 2;
-      particles.push(new Particle(centerX, -100, getConfig().particleSize));
+      particles.push(new Particle(centerX, -100, getConfig().particleSize * scaleFactor));
 
       console.log('Plinko game initialized:', p.width, 'x', p.height);
     },
@@ -310,7 +322,7 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
       // Draw background circle
       if (config.boundaryRadius > 0 && config.backgroundOpacity > 0) {
         const centerX = p.width / 2;
-        const centerY = (p.height / 2) + config.boundaryCenterY;
+        const centerY = (p.height / 2) + (config.boundaryCenterY * scaleFactor);
         p.noStroke();
 
         // Convert hex color to RGB with opacity
@@ -321,14 +333,14 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
         const alpha = Math.floor(config.backgroundOpacity * 255);
 
         p.fill(r, g, b, alpha);
-        p.ellipse(centerX, centerY, config.boundaryRadius * 2);
+        p.ellipse(centerX, centerY, (config.boundaryRadius * scaleFactor) * 2);
       }
 
       // Spawn particles
       if (p.frameCount % config.particleSpawnRate === 0 && particles.length < config.maxParticles) {
         const centerX = p.width / 2;
-        const randomOffset = (Math.random() - 0.5) * 2 * config.dropWidth;
-        particles.push(new Particle(centerX + randomOffset, -100, config.particleSize));
+        const randomOffset = (Math.random() - 0.5) * 2 * (config.dropWidth * scaleFactor);
+        particles.push(new Particle(centerX + randomOffset, -100, config.particleSize * scaleFactor));
       }
 
       // Update physics
@@ -354,9 +366,9 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
       // Draw clearance zone (debug visualization)
       if (config.showClearanceZone && config.boundaryRadius > 0) {
         const centerX = p.width / 2;
-        const centerY = (p.height / 2) + config.boundaryCenterY;
-        const radius = config.boundaryRadius;
-        const minClearance = config.particleSize + config.pegSize + 10;
+        const centerY = (p.height / 2) + (config.boundaryCenterY * scaleFactor);
+        const radius = config.boundaryRadius * scaleFactor;
+        const minClearance = (config.particleSize * scaleFactor) + (config.pegSize * scaleFactor) + (10 * scaleFactor);
         const clearanceRadius = radius - minClearance;
 
         p.push();
@@ -377,6 +389,11 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
 
     windowResized: () => {
       p.resizeCanvas(container.offsetWidth, container.offsetHeight);
+      
+      // Recalculate scale factor on resize
+      scaleFactor = p.width / REFERENCE_WIDTH;
+      console.log(`Plinko resized - new scale factor: ${scaleFactor.toFixed(4)}`);
+      
       regenerate();
     }
   };
