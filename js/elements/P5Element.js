@@ -16,6 +16,7 @@ export class P5Element extends BaseElement {
     });
 
     this.p5Instance = null;
+    this.sketch = null;  // Store sketch methods (like dropCoins)
   }
 
   createElement() {
@@ -37,6 +38,9 @@ export class P5Element extends BaseElement {
     const wrappedSketch = (p) => {
       // Pass container reference and config to sketch function
       const sketch = sketchFunction(p, this.container, this.config);
+      
+      // Store sketch for external access (e.g., dropCoins method)
+      this.sketch = sketch;
 
       // Assign preload if exists
       if (sketch.preload) {
@@ -107,6 +111,13 @@ export class P5Element extends BaseElement {
    */
   getP5Instance() {
     return this.p5Instance;
+  }
+
+  /**
+   * Get sketch object with custom methods (e.g., dropCoins)
+   */
+  getSketch() {
+    return this.sketch;
   }
 
   /**

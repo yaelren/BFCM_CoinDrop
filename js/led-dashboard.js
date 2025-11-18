@@ -12,6 +12,13 @@ import { P5Element } from './elements/P5Element.js';
 import { createPlinkoSketch } from './sketches/plinko-sketch.js';
 import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.19/dist/lil-gui.esm.min.js';
 
+// Real-time processing system
+import { BFCMApi } from './api.js';
+import { OrderQueueManager } from './core/OrderQueueManager.js';
+import { OrderPoller } from './core/OrderPoller.js';
+import { TotalsPoller } from './core/TotalsPoller.js';
+import { OrderProcessor } from './core/OrderProcessor.js';
+
 // Element configurations with default positions
 // TODO: Replace with your measured positions after using GUI
 const ELEMENT_CONFIGS = {
@@ -189,6 +196,13 @@ class LEDDashboard {
     this.layoutManager = null;
     this.elements = {};
     this.isInitialized = false;
+
+    // Real-time processing system
+    this.api = null;
+    this.queueManager = null;
+    this.orderPoller = null;
+    this.totalsPoller = null;
+    this.processor = null;
   }
 
   /**
@@ -207,8 +221,11 @@ class LEDDashboard {
       // Setup GUI controls
       this.layoutManager.setupGUI(GUI);
 
-      // Start with some demo data
-      this.loadDemoData();
+      // Initialize real-time processing system
+      await this.initProcessingSystem();
+
+      // DISABLED: Demo data simulation (using real API now)
+      // this.loadDemoData();
 
       this.isInitialized = true;
       console.log('✅ LED Dashboard initialized successfully');
@@ -322,6 +339,148 @@ class LEDDashboard {
     this.elements.location.updateData(randomLocation);
 
     console.log(`📦 New Order: ${randomStore} - $${newOrderValue} from ${randomLocation.city}, ${randomLocation.country}`);
+  }
+
+  /**
+   * Initialize real-time processing system
+   * PHASE I: Logging only (no element updates)
+   */
+  async initProcessingSystem() {
+    console.log('🔄 Initializing order processing system...');
+
+    try {
+      // Create API client
+      this.api = new BFCMApi();
+
+      // Test connection
+      const connected = await this.api.testConnection();
+      if (!connected) {
+        console.warn('⚠️ API unavailable, processing system disabled');
+        return;
+      }
+
+      console.log('✅ API connection successful');
+
+      // Initialize counters from totals API
+      await this.initializeCounters();
+
+      // Create queue manager
+      this.queueManager = new OrderQueueManager(500);
+
+      // Create order processor (PHASE I: logging only)
+      this.processor = new OrderProcessor(this.queueManager, this, {
+        minDisplayTime: 3000  // 3 seconds between orders
+      });
+
+      // Create order poller (every 2 seconds)
+      this.orderPoller = new OrderPoller(
+        this.api,
+        this.queueManager,
+        (error) => console.error('Order polling error:', error)
+      );
+
+      // Create totals poller (every 10 minutes)
+      this.totalsPoller = new TotalsPoller(
+        this.api,
+        (totals) => this.reconcileTotals(totals),  // PHASE II: reconcile counters
+        (error) => console.error('Totals polling error:', error)
+      );
+
+      // Start polling and processing
+      this.orderPoller.start();
+      this.totalsPoller.start();
+      this.processor.start();
+
+      console.log('✅ Processing system started');
+      console.log('   - Orders polling: every 2 seconds');
+      console.log('   - Totals polling: every 10 minutes');
+      console.log('   - Order display time: 3 seconds');
+
+    } catch (error) {
+      console.error('❌ Failed to initialize processing system:', error);
+    }
+  }
+
+  /**
+   * Reconcile totals from API with local counters
+   * PHASE II: Corrects any drift between local and API totals
+   */
+  /**
+   * Initialize counters from totals API on startup
+   */
+  async initializeCounters() {
+    try {
+      console.log('🔄 Initializing counters from API...');
+      const totals = await this.api.fetchTotals();
+      
+      // Set initial values (use setValue for instant update, no animation)
+      if (this.elements.totalOrders) {
+        this.elements.totalOrders.setValue(totals.orders_count.online);
+      }
+      
+      if (this.elements.totalSales) {
+        this.elements.totalSales.setValue(totals.gpv.online);
+      }
+      
+      if (this.elements.onlineGPV) {
+        this.elements.onlineGPV.setValue(totals.gpv.online);
+      }
+      
+      console.log('✅ Counters initialized:', {
+        totalOrders: totals.orders_count.online,
+        totalSales: totals.gpv.online,
+        onlineGPV: totals.gpv.online
+      });
+    } catch (error) {
+      console.error('❌ Failed to initialize counters:', error);
+    }
+  }
+
+  reconcileTotals(totals) {
+    console.log('═════════════════════════════════════════════════════');
+    console.log('📊 TOTALS API RECONCILIATION');
+    console.log('═════════════════════════════════════════════════════');
+    
+    // Total Orders
+    if (this.elements.totalOrders) {
+      const localOrders = this.elements.totalOrders.targetValue || 0;
+      const apiOrders = totals.orders_count.online;
+      if (localOrders !== apiOrders) {
+        console.log(`⚠️ Orders drift detected: Local=${localOrders}, API=${apiOrders}`);
+        console.log(`   Correcting to ${apiOrders}...`);
+        this.elements.totalOrders.updateData(apiOrders);
+      } else {
+        console.log(`✅ Orders in sync: ${apiOrders}`);
+      }
+    }
+    
+    // Total Sales (using online GPV as total sales)
+    if (this.elements.totalSales) {
+      const localSales = this.elements.totalSales.targetValue || 0;
+      const apiSales = totals.gpv.online;
+      if (Math.abs(localSales - apiSales) > 0.01) {  // Allow for rounding
+        console.log(`⚠️ Sales drift detected: Local=$${localSales.toFixed(2)}, API=$${apiSales.toFixed(2)}`);
+        console.log(`   Correcting to $${apiSales.toFixed(2)}...`);
+        this.elements.totalSales.updateData(apiSales);
+      } else {
+        console.log(`✅ Sales in sync: $${apiSales.toFixed(2)}`);
+      }
+    }
+    
+    // Online GPV
+    if (this.elements.onlineGPV) {
+      const localGPV = this.elements.onlineGPV.targetValue || 0;
+      const apiGPV = totals.gpv.online;
+      if (Math.abs(localGPV - apiGPV) > 0.01) {  // Allow for rounding
+        console.log(`⚠️ Online GPV drift detected: Local=$${localGPV.toFixed(2)}, API=$${apiGPV.toFixed(2)}`);
+        console.log(`   Correcting to $${apiGPV.toFixed(2)}...`);
+        this.elements.onlineGPV.updateData(apiGPV);
+      } else {
+        console.log(`✅ Online GPV in sync: $${apiGPV.toFixed(2)}`);
+      }
+    }
+    
+    console.log('═════════════════════════════════════════════════════');
   }
 
   /**

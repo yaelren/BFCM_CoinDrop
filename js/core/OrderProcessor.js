@@ -1,0 +1,241 @@
+/**
+ * Order Processor
+ *
+ * Main processing loop for orders.
+ * - Sequential processing (one order at a time)
+ * - Configurable delay between orders
+ * - Phase I: LOGGING ONLY (no element updates)
+ * - Phase II: Will add element updates
+ */
+
+import { convertToUSD } from '../utils/CurrencyConverter.js';
+import { calculateCoins } from '../utils/CoinCalculator.js';
+
+export class OrderProcessor {
+  /**
+   * @param {Object} queueManager - Queue manager instance
+   * @param {Object} dashboard - LED Dashboard instance
+   * @param {Object} config - Configuration object
+   */
+  constructor(queueManager, dashboard, config = {}) {
+    this.queueManager = queueManager;
+    this.dashboard = dashboard;
+    this.config = {
+      minDisplayTime: config.minDisplayTime || 3000  // Default 3 seconds
+    };
+
+    this.isProcessing = false;
+    this.processingTimeoutId = null;
+    this.state = {
+      totalProcessed: 0,
+      currentOrder: null,
+      lastProcessedTime: null,
+      errorCount: 0
+    };
+  }
+
+  /**
+   * Start processing loop
+   */
+  start() {
+    if (this.isProcessing) {
+      console.warn('Processor already running');
+      return;
+    }
+
+    console.log('🎯 Starting order processor');
+    this.isProcessing = true;
+    this.processNext();
+  }
+
+  /**
+   * Stop processing loop
+   */
+  stop() {
+    console.log('Stopping order processor');
+    this.isProcessing = false;
+
+    if (this.processingTimeoutId) {
+      clearTimeout(this.processingTimeoutId);
+      this.processingTimeoutId = null;
+    }
+  }
+
+  /**
+   * Process next order in queue
+   */
+  async processNext() {
+    // Check if should continue
+    if (!this.isProcessing) {
+      return;
+    }
+
+    // Check if queue empty
+    if (this.queueManager.isEmpty()) {
+      // Queue empty - wait 1 second and check again
+      this.processingTimeoutId = setTimeout(() => {
+        this.processNext();
+      }, 1000);
+      return;
+    }
+
+    // Dequeue next order
+    const order = this.queueManager.dequeue();
+    this.state.currentOrder = order;
+
+    console.log(`🎯 Processing order ${order.id} (queue: ${this.queueManager.size()} remaining)`);
+
+    try {
+      // Process order
+      await this.processOrder(order);
+
+      // Mark as processed
+      this.queueManager.markProcessed(order.id);
+
+      // Update stats
+      this.state.totalProcessed++;
+      this.state.lastProcessedTime = new Date();
+
+    } catch (error) {
+      console.error('❌ Order processing failed:', error, order);
+      this.state.errorCount++;
+      // Continue anyway (don't halt entire pipeline)
+    }
+
+    this.state.currentOrder = null;
+
+    // Wait configured delay before next order
+    this.processingTimeoutId = setTimeout(() => {
+      this.processNext();
+    }, this.config.minDisplayTime);
+  }
+
+  /**
+   * Process single order
+   * PHASE II: Element updates + coin drops
+   */
+  async processOrder(order) {
+    // 1. Parse amount (convert string to number)
+    const amount = parseFloat(order.amount);
+    if (isNaN(amount)) {
+      console.error('Invalid amount:', order.amount);
+      return;
+    }
+
+    // 2. Convert currency to USD
+    const usdAmount = convertToUSD(amount, order.currency);
+
+    // 3. Calculate coin drops
+    const { tens, ones } = calculateCoins(usdAmount);
+
+    // 4. Extract data
+    const location = `${order.location.city || 'Unknown'}, ${order.location.country || 'Unknown'}`;
+    const businessName = order.metadata?.business_name || 'N/A';
+
+    // Log processing details
+    console.log('═════════════════════════════════════════════════════');
+    console.log(`Order ID: ${order.id}`);
+    console.log(`Original: ${order.currency} ${order.amount}`);
+    console.log(`Converted: $${usdAmount} USD`);
+    console.log(`Coins: ${tens}×$10 + ${ones}×$1 = ${tens + ones} total coins`);
+    console.log(`Location: ${location}`);
+    console.log(`Business: ${businessName}`);
+    console.log('═════════════════════════════════════════════════════');
+
+    // PHASE II: Update elements in parallel
+    await Promise.all([
+      this.updateSale(usdAmount),
+      this.updateLocation(order),
+      this.updateStoreName(businessName),
+      this.updateCounters(usdAmount)
+    ]);
+
+    // Drop coins (non-blocking)
+    this.dropCoins(tens, ones);
+  }
+
+  /**
+   * Update sale element with USD amount
+   */
+  async updateSale(usdAmount) {
+    if (!this.dashboard.elements.sale) return;
+    this.dashboard.elements.sale.updateData(usdAmount);
+  }
+
+  /**
+   * Update location element with map data
+   */
+  async updateLocation(order) {
+    if (!this.dashboard.elements.location) return;
+    
+    // Map element needs full location object with lat/lon
+    if (order.location && order.location.lat && order.location.lon) {
+      this.dashboard.elements.location.updateData(order.location);
+    }
+  }
+
+  /**
+   * Update store name element
+   */
+  async updateStoreName(businessName) {
+    if (!this.dashboard.elements.storeName) return;
+    this.dashboard.elements.storeName.addName(businessName);
+  }
+
+  /**
+   * Update counter elements (totalOrders, totalSales, onlineGPV)
+   */
+  async updateCounters(usdAmount) {
+    // Increment total orders
+    if (this.dashboard.elements.totalOrders) {
+      const current = this.dashboard.elements.totalOrders.targetValue || 0;
+      this.dashboard.elements.totalOrders.updateData(current + 1);
+    }
+
+    // Increment total sales
+    if (this.dashboard.elements.totalSales) {
+      const current = this.dashboard.elements.totalSales.targetValue || 0;
+      this.dashboard.elements.totalSales.updateData(current + usdAmount);
+    }
+
+    // Increment online GPV (assuming all orders are online)
+    if (this.dashboard.elements.onlineGPV) {
+      const current = this.dashboard.elements.onlineGPV.targetValue || 0;
+      this.dashboard.elements.onlineGPV.updateData(current + usdAmount);
+    }
+  }
+
+  /**
+   * Drop coins into Plinko
+   */
+  dropCoins(tens, ones) {
+    const plinkoElement = this.dashboard.elements.plinko;
+    if (!plinkoElement) {
+      console.warn('Plinko element not found');
+      return;
+    }
+
+    const sketch = plinkoElement.getSketch();
+    if (!sketch || !sketch.dropCoins) {
+      console.warn('Plinko dropCoins method not available');
+      return;
+    }
+
+    sketch.dropCoins(tens, ones);
+  }
+
+  /**
+   * Get processing status
+   * @returns {Object} Status information
+   */
+  getStatus() {
+    return {
+      isProcessing: this.isProcessing,
+      queueSize: this.queueManager.size(),
+      totalProcessed: this.state.totalProcessed,
+      lastProcessedTime: this.state.lastProcessedTime,
+      errorCount: this.state.errorCount,
+      currentOrder: this.state.currentOrder?.id || null
+    };
+  }
+}

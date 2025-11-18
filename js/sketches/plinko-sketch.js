@@ -29,7 +29,7 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
     pegSize: externalConfig.pegSize || 6,
     particleSize: externalConfig.particleSize || 51,
     particleSpawnRate: externalConfig.particleSpawnRate || 9,
-    maxParticles: externalConfig.maxParticles || 100,
+    maxParticles: externalConfig.maxParticles || 300,
     dropWidth: externalConfig.dropWidth || 170,
     gravity: externalConfig.gravity || 0.2,
     boundaryRadius: externalConfig.boundaryRadius || 350,
@@ -278,6 +278,41 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
     createBoundaries();
   }
 
+  // Drop coins method (called by order processor)
+  function dropCoins(tens, ones) {
+    const centerX = p.width / 2;
+    const config = getConfig();
+    const particleRadius = config.particleSize * scaleFactor;
+    
+    // Load coin images for selection
+    const oneDollarImages = particleImages.filter((_, i) => i === 0 || i === 1);  // 1_01.png, 1_02.png
+    const tenDollarImages = particleImages.filter((_, i) => i === 2 || i === 3); // 10_01.png, 10_02.png
+    
+    // Drop $10 coins with random image selection
+    for (let i = 0; i < tens; i++) {
+      const randomOffset = (Math.random() - 0.5) * 2 * (config.dropWidth * scaleFactor);
+      const particle = new Particle(centerX + randomOffset, -100, particleRadius);
+      // Override image with random $10 coin
+      if (tenDollarImages.length > 0) {
+        particle.image = tenDollarImages[Math.floor(Math.random() * tenDollarImages.length)];
+      }
+      particles.push(particle);
+    }
+    
+    // Drop $1 coins with random image selection
+    for (let i = 0; i < ones; i++) {
+      const randomOffset = (Math.random() - 0.5) * 2 * (config.dropWidth * scaleFactor);
+      const particle = new Particle(centerX + randomOffset, -100, particleRadius);
+      // Override image with random $1 coin
+      if (oneDollarImages.length > 0) {
+        particle.image = oneDollarImages[Math.floor(Math.random() * oneDollarImages.length)];
+      }
+      particles.push(particle);
+    }
+    
+    console.log(`💰 Dropped ${tens}×$10 + ${ones}×$1 = ${tens + ones} coins`);
+  }
+
   // P5 sketch methods
   return {
     preload: () => {
@@ -336,12 +371,12 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
         p.ellipse(centerX, centerY, (config.boundaryRadius * scaleFactor) * 2);
       }
 
-      // Spawn particles
-      if (p.frameCount % config.particleSpawnRate === 0 && particles.length < config.maxParticles) {
-        const centerX = p.width / 2;
-        const randomOffset = (Math.random() - 0.5) * 2 * (config.dropWidth * scaleFactor);
-        particles.push(new Particle(centerX + randomOffset, -100, config.particleSize * scaleFactor));
-      }
+      // Spawn particles (DISABLED - controlled by dropCoins() method)
+      // if (p.frameCount % config.particleSpawnRate === 0 && particles.length < config.maxParticles) {
+      //   const centerX = p.width / 2;
+      //   const randomOffset = (Math.random() - 0.5) * 2 * (config.dropWidth * scaleFactor);
+      //   particles.push(new Particle(centerX + randomOffset, -100, config.particleSize * scaleFactor));
+      // }
 
       // Update physics
       Engine.update(engine, 1000 / 30);
@@ -395,6 +430,9 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
       console.log(`Plinko resized - new scale factor: ${scaleFactor.toFixed(4)}`);
       
       regenerate();
-    }
+    },
+
+    // API for external control
+    dropCoins: dropCoins
   };
 }

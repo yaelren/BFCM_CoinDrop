@@ -184,3 +184,6 @@ class BFCMApi {
 
 // Create global API instance
 const api = new BFCMApi();
+
+// Export for ES modules
+export { BFCMApi, api };
