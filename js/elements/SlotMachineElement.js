@@ -26,6 +26,7 @@ export class SlotMachineElement extends BaseElement {
     this.currentValue = 0;
     this.digitContainers = [];
     this.dollarContainer = null;
+    this.activeAnimations = []; // Track active animations for cancellation
   }
 
   createElement() {
@@ -43,10 +44,14 @@ export class SlotMachineElement extends BaseElement {
   createDigits(value) {
     if (!this.container) return;
 
+    // Cancel all active animations before destroying DOM
+    this.cancelAllAnimations();
+
     // Clear existing digits
     this.container.innerHTML = '';
     this.digitContainers = [];
 
+    // Truncate decimal point (floor to whole number)
     const valueStr = Math.abs(Math.floor(value)).toString();
     const isNegative = value < 0;
 
@@ -116,11 +121,13 @@ export class SlotMachineElement extends BaseElement {
    * Animate to new value
    */
   animateToValue(newValue) {
+    // Truncate decimal point (floor to whole numbers)
     const newValueStr = Math.abs(Math.floor(newValue)).toString();
     const oldValueStr = Math.abs(Math.floor(this.currentValue)).toString();
 
     // If digit count changed, recreate digits
     if (newValueStr.length !== oldValueStr.length) {
+      this.currentValue = newValue; // Update current value BEFORE recreating
       this.createDigits(newValue);
       return;
     }
@@ -185,13 +192,23 @@ export class SlotMachineElement extends BaseElement {
     const column = digitContainer.column;
     const targetY = -targetDigit * this.config.digitHeight;
 
-    anime({
+    const animation = anime({
       targets: column,
       translateY: targetY,
       duration: this.config.spinSpeed,
       delay: delay,
-      easing: 'easeOutElastic(1, .6)'
+      easing: 'easeOutElastic(1, .6)',
+      complete: () => {
+        // Remove from active animations when complete
+        const index = this.activeAnimations.indexOf(animation);
+        if (index > -1) {
+          this.activeAnimations.splice(index, 1);
+        }
+      }
     });
+
+    // Track animation for cancellation
+    this.activeAnimations.push(animation);
   }
 
   /**
@@ -201,12 +218,39 @@ export class SlotMachineElement extends BaseElement {
     if (!this.dollarContainer) return;
 
     // Spin effect
-    anime({
+    const animation = anime({
       targets: this.dollarContainer,
       rotateY: [0, 360],
       duration: this.config.spinSpeed * 0.7,
-      easing: 'easeOutCubic'
+      easing: 'easeOutCubic',
+      complete: () => {
+        // Remove from active animations when complete
+        const index = this.activeAnimations.indexOf(animation);
+        if (index > -1) {
+          this.activeAnimations.splice(index, 1);
+        }
+      }
     });
+
+    // Track animation for cancellation
+    this.activeAnimations.push(animation);
+  }
+
+  /**
+   * Cancel all active animations
+   */
+  cancelAllAnimations() {
+    if (this.activeAnimations.length === 0) return;
+
+    // Remove all animations using anime.js remove method
+    this.activeAnimations.forEach(animation => {
+      if (animation && animation.pause) {
+        animation.pause();
+      }
+    });
+
+    // Clear animation array
+    this.activeAnimations = [];
   }
 
   /**
