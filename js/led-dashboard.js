@@ -392,7 +392,7 @@ class LEDDashboard {
       this.processor.start();
 
       console.log('✅ Processing system started');
-      console.log('   - Orders polling: every 2 seconds');
+      console.log('   - Orders polling: queue-based (fetches when empty)');
       console.log('   - Totals polling: every 10 minutes');
       console.log('   - Order display time: 3 seconds');
 

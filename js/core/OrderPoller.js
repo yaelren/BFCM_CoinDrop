@@ -1,7 +1,8 @@
 /**
  * Order Poller
  *
- * Polls /api/orders endpoint every 2 seconds.
+ * Polls /api/orders endpoint when queue is empty.
+ * - Queue-based polling: fetches only after processing previous batch
  * - Filters duplicates before queueing
  * - Exponential backoff on errors
  * - Start/stop controls
@@ -17,12 +18,17 @@ export class OrderPoller {
     this.api = api;
     this.queueManager = queueManager;
     this.onError = onError;
-    this.intervalId = null;
     this.isRunning = false;
+    this.pollLoopTimeoutId = null;
+
+    // Polling config
+    this.queueCheckInterval = 1000;    // Check queue every 1 second
+    this.minFetchDelay = 1000;         // Minimum 1s between fetches
+    this.lastFetchTime = 0;
 
     // Exponential backoff config
-    this.baseInterval = 2000;          // 2 seconds
-    this.currentInterval = 2000;
+    this.baseInterval = 1000;          // 1 second base
+    this.currentInterval = 1000;
     this.maxInterval = 30000;          // 30 seconds max
     this.consecutiveErrors = 0;
   }
@@ -36,16 +42,11 @@ export class OrderPoller {
       return;
     }
 
-    console.log('📦 Starting order polling (2s interval)');
+    console.log('📦 Starting queue-based order polling');
     this.isRunning = true;
 
-    // Immediate first fetch
-    this.fetchOrders();
-
-    // Poll at current interval
-    this.intervalId = setInterval(() => {
-      this.fetchOrders();
-    }, this.currentInterval);
+    // Start polling loop
+    this.pollLoop();
   }
 
   /**
@@ -57,27 +58,35 @@ export class OrderPoller {
     console.log('Stopping order polling');
     this.isRunning = false;
 
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
+    if (this.pollLoopTimeoutId) {
+      clearTimeout(this.pollLoopTimeoutId);
+      this.pollLoopTimeoutId = null;
     }
   }
 
   /**
-   * Restart poller with new interval (for backoff)
+   * Main polling loop - checks queue and fetches when empty
    */
-  restartWithInterval(interval) {
+  async pollLoop() {
     if (!this.isRunning) return;
 
-    // Clear old interval
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
+    // Check if queue is empty
+    if (this.queueManager.isEmpty()) {
+      // Respect minimum delay between fetches
+      const timeSinceLastFetch = Date.now() - this.lastFetchTime;
+      if (timeSinceLastFetch >= this.minFetchDelay) {
+        await this.fetchOrders();
+      }
     }
 
-    // Start new interval
-    this.intervalId = setInterval(() => {
-      this.fetchOrders();
-    }, interval);
+    // Schedule next check
+    const checkInterval = this.consecutiveErrors > 0
+      ? this.currentInterval  // Use backoff interval on errors
+      : this.queueCheckInterval;  // Normal queue checking
+
+    this.pollLoopTimeoutId = setTimeout(() => {
+      this.pollLoop();
+    }, checkInterval);
   }
 
   /**
@@ -86,15 +95,16 @@ export class OrderPoller {
   async fetchOrders() {
     if (!this.isRunning) return;
 
+    this.lastFetchTime = Date.now();
+
     try {
       const orders = await this.api.fetchOrders();
 
-      // Success: reset error counter and interval
+      // Success: reset error counter
       if (this.consecutiveErrors > 0) {
         console.log('✅ Order polling recovered');
         this.consecutiveErrors = 0;
         this.currentInterval = this.baseInterval;
-        this.restartWithInterval(this.currentInterval);
       }
 
       // Filter duplicates
@@ -105,14 +115,17 @@ export class OrderPoller {
         const added = this.queueManager.enqueue(newOrders);
 
         console.log(`📦 Fetched ${orders.length} orders, ${newOrders.length} new, ${added} added to queue`);
+        console.log(`   Queue will be processed before next fetch`);
       } else if (orders.length > 0) {
         console.log(`📦 Fetched ${orders.length} orders, all duplicates (filtered)`);
+      } else {
+        console.log(`📦 No new orders available`);
       }
 
     } catch (error) {
       this.consecutiveErrors++;
 
-      // Exponential backoff: 2s → 4s → 8s → 16s → 30s (cap)
+      // Exponential backoff: 1s → 2s → 4s → 8s → 16s → 30s (cap)
       this.currentInterval = Math.min(
         this.baseInterval * Math.pow(2, this.consecutiveErrors - 1),
         this.maxInterval
@@ -121,9 +134,6 @@ export class OrderPoller {
       console.error(`❌ Order fetch error #${this.consecutiveErrors}, backing off to ${this.currentInterval}ms`);
 
       this.onError(error);
-
-      // Update interval with backoff
-      this.restartWithInterval(this.currentInterval);
 
       // Alert if too many errors
       if (this.consecutiveErrors >= 5) {

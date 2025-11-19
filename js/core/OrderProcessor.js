@@ -125,6 +125,12 @@ export class OrderProcessor {
     // 2. Convert currency to USD
     const usdAmount = convertToUSD(amount, order.currency);
 
+    // Skip orders with $0 value
+    if (usdAmount === 0) {
+      console.log(`⏭️  Skipping order ${order.id}: $0 USD value`);
+      return;
+    }
+
     // 3. Calculate coin drops
     const { tens, ones } = calculateCoins(usdAmount);
 
@@ -132,14 +138,12 @@ export class OrderProcessor {
     const location = `${order.location.city || 'Unknown'}, ${order.location.country || 'Unknown'}`;
     const businessName = order.metadata?.business_name || 'N/A';
 
-    // Log processing details
+    // Log processing details with emphasis on amount and coins
     console.log('═════════════════════════════════════════════════════');
-    console.log(`Order ID: ${order.id}`);
-    console.log(`Original: ${order.currency} ${order.amount}`);
-    console.log(`Converted: $${usdAmount} USD`);
-    console.log(`Coins: ${tens}×$10 + ${ones}×$1 = ${tens + ones} total coins`);
-    console.log(`Location: ${location}`);
-    console.log(`Business: ${businessName}`);
+    console.log(`🎯 ORDER: ${order.id}`);
+    console.log(`   ${businessName} (${location})`);
+    console.log(`   %c${order.currency} ${order.amount} → $${usdAmount} USD`, 'font-weight: bold; font-size: 14px; color: #4CAF50');
+    console.log(`   %cCoins: ${tens}×$10 + ${ones}×$1 = ${tens + ones} TOTAL`, 'font-weight: bold; font-size: 14px; color: #FF9800');
     console.log('═════════════════════════════════════════════════════');
 
     // PHASE II: Update elements in parallel
@@ -183,7 +187,8 @@ export class OrderProcessor {
   }
 
   /**
-   * Update counter elements (totalOrders, totalSales, onlineGPV)
+   * Update counter elements (totalOrders, totalSales)
+   * Note: onlineGPV is updated from totals API only, not from individual orders
    */
   async updateCounters(usdAmount) {
     // Increment total orders
@@ -198,11 +203,7 @@ export class OrderProcessor {
       this.dashboard.elements.totalSales.updateData(current + usdAmount);
     }
 
-    // Increment online GPV (assuming all orders are online)
-    if (this.dashboard.elements.onlineGPV) {
-      const current = this.dashboard.elements.onlineGPV.targetValue || 0;
-      this.dashboard.elements.onlineGPV.updateData(current + usdAmount);
-    }
+    // onlineGPV is NOT updated here - it's updated from totals API reconciliation only
   }
 
   /**
