@@ -541,7 +541,7 @@ export class LayoutManager {
             color: white;
             padding: 2px 5px;
             font-size: 10px;
-            font-family: monospace;
+            font-family: 'PPSupplyMono', monospace;
             z-index: 9999;
             pointer-events: none;
           `;

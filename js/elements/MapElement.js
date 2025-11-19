@@ -311,7 +311,7 @@ export class MapElement extends BaseElement {
       color: ${this.config.locationLabelColor};
       font-size: ${responsiveFontSize}px;
       font-weight: 400;
-      font-family: inherit;
+      font-family: 'PPSupplyMono', monospace;
       opacity: ${this.locationLabel.style.opacity || '0'};
       transition: opacity 0.3s ease;
       pointer-events: none;

@@ -316,7 +316,7 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
   // P5 sketch methods
   return {
     preload: () => {
-      const imageFiles = ['1_01.png', '1_02.png', '10_01.png', '10_02.png'];
+      const imageFiles = ['1_03.png', '1_04.png', '10_03.png', '10_04.png'];
       for (let filename of imageFiles) {
         particleImages.push(p.loadImage(`assets/${filename}`));
       }

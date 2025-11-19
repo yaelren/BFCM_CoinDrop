@@ -37,13 +37,14 @@ export class TickerElement extends BaseElement {
     `;
 
     this.tickerContent = document.createElement('div');
-    this.tickerContent.className = 'ticker-content font-mono';
+    this.tickerContent.className = 'ticker-content';
     this.tickerContent.style.cssText = `
       display: inline-block;
       position: absolute;
       left: 0;
       font-size: ${toResponsiveUnit(this.config.fontSize)};
       color: ${this.config.color};
+      font-weight: 400;
     `;
 
     container.appendChild(this.tickerContent);

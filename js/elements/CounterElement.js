@@ -33,7 +33,7 @@ export class CounterElement extends BaseElement {
     container.className = 'counter-element flex items-center justify-center';
 
     this.displayElement = document.createElement('div');
-    this.displayElement.className = 'counter-display font-mono font-bold';
+    this.displayElement.className = 'counter-display';
     this.updateDisplayStyles();
 
     container.appendChild(this.displayElement);
@@ -54,6 +54,7 @@ export class CounterElement extends BaseElement {
     this.displayElement.style.color = this.config.color;
     this.displayElement.style.textAlign = 'center';
     this.displayElement.style.width = '100%';
+    this.displayElement.style.fontWeight = '400';
   }
 
   /**

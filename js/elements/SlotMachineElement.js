@@ -31,9 +31,10 @@ export class SlotMachineElement extends BaseElement {
 
   createElement() {
     const container = document.createElement('div');
-    container.className = 'slot-machine-element flex items-center justify-center font-mono font-bold';
+    container.className = 'slot-machine-element flex items-center justify-center';
     container.style.fontSize = toResponsiveUnit(this.config.fontSize);
     container.style.color = this.config.color;
+    container.style.fontWeight = '400';
 
     return container;
   }
@@ -51,16 +52,12 @@ export class SlotMachineElement extends BaseElement {
     this.container.innerHTML = '';
     this.digitContainers = [];
 
-    // Truncate decimal point (floor to whole number)
-    const valueStr = Math.abs(Math.floor(value)).toString();
+    // Truncate decimal point (floor to whole number) and add commas
+    const valueStr = Math.abs(Math.floor(value)).toLocaleString('en-US');
     const isNegative = value < 0;
 
-    // Add dollar sign if needed
-    this.dollarContainer = document.createElement('div');
-    this.dollarContainer.className = 'slot-digit-static';
-    this.dollarContainer.textContent = '$';
-    this.dollarContainer.style.marginRight = '0.1em';
-    this.container.appendChild(this.dollarContainer);
+    // Dollar sign removed - no longer displaying currency symbol
+    this.dollarContainer = null;
 
     // Add negative sign if needed
     if (isNegative) {
@@ -72,6 +69,19 @@ export class SlotMachineElement extends BaseElement {
 
     // Create digit containers
     for (let i = 0; i < valueStr.length; i++) {
+      const char = valueStr[i];
+      
+      // Handle commas as static elements
+      if (char === ',') {
+        const commaEl = document.createElement('div');
+        commaEl.className = 'slot-digit-static';
+        commaEl.textContent = ',';
+        commaEl.style.marginLeft = '0.05em';
+        commaEl.style.marginRight = '0.05em';
+        this.container.appendChild(commaEl);
+        continue;
+      }
+      
       const digitWrapper = document.createElement('div');
       digitWrapper.className = 'slot-digit-wrapper';
       digitWrapper.style.cssText = `
@@ -109,11 +119,11 @@ export class SlotMachineElement extends BaseElement {
       this.digitContainers.push({
         wrapper: digitWrapper,
         column: digitColumn,
-        currentDigit: parseInt(valueStr[i])
+        currentDigit: parseInt(char)
       });
 
       // Set initial position
-      digitColumn.style.transform = `translateY(-${parseInt(valueStr[i]) * this.config.digitHeight}px)`;
+      digitColumn.style.transform = `translateY(-${parseInt(char) * this.config.digitHeight}px)`;
     }
   }
 
@@ -121,9 +131,9 @@ export class SlotMachineElement extends BaseElement {
    * Animate to new value
    */
   animateToValue(newValue) {
-    // Truncate decimal point (floor to whole numbers)
-    const newValueStr = Math.abs(Math.floor(newValue)).toString();
-    const oldValueStr = Math.abs(Math.floor(this.currentValue)).toString();
+    // Truncate decimal point (floor to whole numbers) and add commas
+    const newValueStr = Math.abs(Math.floor(newValue)).toLocaleString('en-US');
+    const oldValueStr = Math.abs(Math.floor(this.currentValue)).toLocaleString('en-US');
 
     // If digit count changed, recreate digits
     if (newValueStr.length !== oldValueStr.length) {
@@ -132,22 +142,23 @@ export class SlotMachineElement extends BaseElement {
       return;
     }
 
-    // Animate dollar sign if enabled
-    if (this.config.dollarSpins && this.dollarContainer) {
-      this.animateDollarSign();
-    }
+    // Dollar sign animation removed - no currency symbol to animate
 
     // Animate each digit based on style
-    const delays = this.calculateDelays(newValueStr.length);
+    // Filter out commas to get only digit positions
+    const digitsOnly = newValueStr.replace(/,/g, '');
+    const delays = this.calculateDelays(digitsOnly.length);
 
-    this.digitContainers.forEach((digitContainer, index) => {
-      const targetDigit = parseInt(newValueStr[index]);
+    let digitIndex = 0;
+    this.digitContainers.forEach((digitContainer) => {
+      const targetDigit = parseInt(digitsOnly[digitIndex]);
       const currentDigit = digitContainer.currentDigit;
 
       if (targetDigit !== currentDigit) {
-        this.animateDigit(digitContainer, targetDigit, delays[index]);
+        this.animateDigit(digitContainer, targetDigit, delays[digitIndex]);
         digitContainer.currentDigit = targetDigit;
       }
+      digitIndex++;
     });
 
     this.currentValue = newValue;

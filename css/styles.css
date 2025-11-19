@@ -1,5 +1,13 @@
 /* BFCM Dashboard Styles */
 
+@font-face {
+    font-family: 'PPSupplyMono';
+    src: url('../assets/font/PPSupplyMono-Variable.woff2') format('woff2');
+    font-weight: 1 999;
+    font-style: normal;
+    font-display: swap;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -10,7 +18,8 @@ body {
     width: 100%;
     min-height: 100vh;
     background-color: white;
-    font-family: 'Arial', sans-serif;
+    font-family: 'PPSupplyMono', monospace;
+    font-weight: 400;
     padding: 40px;
     overflow-x: hidden;
     overflow-y: auto;
