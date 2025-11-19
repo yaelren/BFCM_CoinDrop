@@ -30,7 +30,7 @@ const ELEMENT_CONFIGS = {
     height: 120,
     visible: true,
     zIndex: 16,
-    background: { color: '#dbe1e4', opacity: 1 },
+    background: { color: '#dbe1e4', opacity: 0 },
     config: {
       scrollSpeed: 63,
       maxQueue: 10,
@@ -89,7 +89,7 @@ const ELEMENT_CONFIGS = {
       cols: 20,
       rows: 10,
       pegSize: 20,
-      particleSize: 118,
+      particleSize: 45,
       particleSpawnRate: 9,
       maxParticles: 100,
       dropWidth: 500,
@@ -98,7 +98,7 @@ const ELEMENT_CONFIGS = {
       boundaryCenterY: -330,
       tunnelWidth: 750,
       backgroundColor: '#d6d6d6',
-      backgroundOpacity: 0.35,
+      backgroundOpacity: 0,
       // Particle physics settings
       particleRestitution: 0.45,
       particleFriction: 0.55,
@@ -122,7 +122,7 @@ const ELEMENT_CONFIGS = {
     height: 224,
     visible: true,
     zIndex: 5,
-    background: { color: '#e3e4e5', opacity: 1 },
+    background: { color: '#e3e4e5', opacity: 0 },
     config: {
       lerpSpeed: 1,
       fontSize: 66,
@@ -141,7 +141,7 @@ const ELEMENT_CONFIGS = {
     height: 134,
     visible: true,
     zIndex: 5,
-    background: { color: '#e2e4e5', opacity: 1 },
+    background: { color: '#e2e4e5', opacity: 0 },
     config: {
       lerpSpeed: 1,
       fontSize: 33,
@@ -160,7 +160,7 @@ const ELEMENT_CONFIGS = {
     height: 149,
     visible: true,
     zIndex: 5,
-    background: { color: '#dbe1e4', opacity: 1 },
+    background: { color: '#dbe1e4', opacity: 0 },
     config: {
       animationStyle: 3,
       spinSpeed: 2000,
@@ -179,7 +179,7 @@ const ELEMENT_CONFIGS = {
     height: 104,
     visible: true,
     zIndex: 5,
-    background: { color: '#dbe1e4', opacity: 1 },
+    background: { color: '#dbe1e4', opacity: 0 },
     config: {
       animationStyle: 1,
       spinSpeed: 800,
@@ -588,6 +588,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Expose to window for debugging
   window.dashboard = dashboard;
+
+  // Ensure video plays (Arc browser compatibility)
+  // Use setTimeout to prevent blocking dashboard initialization
+  setTimeout(() => {
+    const video = document.querySelector('.led-background-video');
+    if (video) {
+      video.play().catch(e => console.log('Video autoplay blocked:', e.message));
+    }
+  }, 100);
 });
 
 // Cleanup on page unload

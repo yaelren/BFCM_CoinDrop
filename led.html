@@ -11,6 +11,17 @@
 </head>
 <body>
     <div class="led-dashboard" id="led-dashboard">
+        <!-- Animated video background -->
+        <video class="led-background-video"
+               autoplay
+               loop
+               muted
+               playsinline
+               webkit-playsinline
+               onloadedmetadata="this.muted = true"
+               preload="auto">
+            <source src="assets/Animated_Bord.mp4" type="video/mp4">
+        </video>
         <!-- All elements will be dynamically created by LayoutManager -->
         <!-- Element containers are positioned absolutely by the layout system -->
     </div>
