@@ -154,18 +154,18 @@ const ELEMENT_CONFIGS = {
 
   sale: {
     type: 'slotMachine',
-    x: 3621,
+    x: 3613,
     y: 1175,
-    width: 770,
+    width: 461,
     height: 149,
     visible: true,
     zIndex: 5,
-    background: { color: '#dbe1e4', opacity: 0 },
+    background: { color: '#000000', opacity: 0 },
     config: {
       animationStyle: 3,
       spinSpeed: 2000,
       dollarSpins: true,
-      fontSize: 48,
+      fontSize: 98,
       color: '#4f4f4f',
       digitHeight: 60
     }
@@ -173,18 +173,18 @@ const ELEMENT_CONFIGS = {
 
   onlineGPV: {
     type: 'slotMachine',
-    x: 3442,
+    x: 3385,
     y: 1531,
-    width: 770,
+    width: 542,
     height: 104,
     visible: true,
     zIndex: 5,
-    background: { color: '#dbe1e4', opacity: 0 },
+    background: { color: '#0092db', opacity: 0 },
     config: {
       animationStyle: 1,
       spinSpeed: 800,
       dollarSpins: false,
-      fontSize: 48,
+      fontSize: 75,
       color: '#545454',
       digitHeight: 60
     }
