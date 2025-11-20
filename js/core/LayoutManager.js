@@ -503,6 +503,17 @@ export class LayoutManager {
             .onChange(() => element.updateConfig(config));
         }
 
+        // Peg Position Offsets
+        if (config.pegOffsetX === undefined) config.pegOffsetX = 0;
+        folder.add(config, 'pegOffsetX', -500, 500, 1)
+          .name('Peg Offset X')
+          .onChange(() => element.updateConfig(config));
+
+        if (config.pegOffsetY === undefined) config.pegOffsetY = 0;
+        folder.add(config, 'pegOffsetY', -500, 500, 1)
+          .name('Peg Offset Y')
+          .onChange(() => element.updateConfig(config));
+
         // Background
         if (config.backgroundColor !== undefined) {
           folder.addColor(config, 'backgroundColor')

@@ -37,6 +37,9 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
     tunnelWidth: externalConfig.tunnelWidth || 250,
     backgroundColor: externalConfig.backgroundColor || '#d6d6d6',
     backgroundOpacity: externalConfig.backgroundOpacity ?? 1.0,
+    // Peg positioning offsets
+    pegOffsetX: externalConfig.pegOffsetX ?? 0,
+    pegOffsetY: externalConfig.pegOffsetY ?? 0,
     // Visibility controls
     showBoundaries: externalConfig.showBoundaries ?? true,
     showPegs: externalConfig.showPegs ?? true,
@@ -50,7 +53,13 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
     pegRestitution: externalConfig.pegRestitution ?? 0.8,
     pegFriction: externalConfig.pegFriction ?? 0,
     // Coin collider size (ratio of visual size)
-    coinColliderRatio: externalConfig.coinColliderRatio ?? 0.35
+    coinColliderRatio: externalConfig.coinColliderRatio ?? 0.35,
+    // Particle drop shadow
+    particleShadowBlur: externalConfig.particleShadowBlur ?? 27,
+    particleShadowColor: externalConfig.particleShadowColor ?? '#000000',
+    particleShadowOpacity: externalConfig.particleShadowOpacity ?? 0.5,
+    particleShadowOffsetX: externalConfig.particleShadowOffsetX ?? -2,
+    particleShadowOffsetY: externalConfig.particleShadowOffsetY ?? 10
   });
 
   // Particle class
@@ -86,14 +95,21 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
     show() {
       const pos = this.body.position;
       const angle = this.body.angle;
+      const config = getConfig();
       p.push();
       p.translate(pos.x, pos.y);
       p.rotate(angle);
 
-      p.drawingContext.shadowBlur = 27;
-      p.drawingContext.shadowColor = `rgba(0, 0, 0, 0.5)`;
-      p.drawingContext.shadowOffsetX = -2;
-      p.drawingContext.shadowOffsetY = 10;
+      // Convert hex color + opacity to rgba
+      const hexColor = config.particleShadowColor.replace('#', '');
+      const r = parseInt(hexColor.substr(0, 2), 16);
+      const g = parseInt(hexColor.substr(2, 2), 16);
+      const b = parseInt(hexColor.substr(4, 2), 16);
+
+      p.drawingContext.shadowBlur = config.particleShadowBlur;
+      p.drawingContext.shadowColor = `rgba(${r}, ${g}, ${b}, ${config.particleShadowOpacity})`;
+      p.drawingContext.shadowOffsetX = config.particleShadowOffsetX;
+      p.drawingContext.shadowOffsetY = config.particleShadowOffsetY;
 
       if (this.image) {
         p.imageMode(p.CENTER);
@@ -186,9 +202,13 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
     const centerX = p.width / 2;
     const centerY = (p.height / 2) + (config.boundaryCenterY * scaleFactor);
     const radius = config.boundaryRadius * scaleFactor;
-    
+
     // Calculate starting Y position at the top of the circle
     const startY = centerY - radius;
+
+    // Apply peg offsets (scaled to reference dimensions)
+    const pegOffsetX = config.pegOffsetX * scaleFactor;
+    const pegOffsetY = config.pegOffsetY * scaleFactor;
 
     for (let j = 0; j < config.rows; j++) {
       for (let i = 0; i < config.cols + 1; i++) {
@@ -198,17 +218,21 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
         }
         const y = startY + j * spacing;
 
+        // Apply offsets to peg position
+        const offsetX = x + pegOffsetX;
+        const offsetY = y + pegOffsetY;
+
         if (config.boundaryRadius <= 0) {
-          plinkos.push(new Plinko(x, y, config.pegSize * scaleFactor));
+          plinkos.push(new Plinko(offsetX, offsetY, config.pegSize * scaleFactor));
         } else {
-          const dx = x - centerX;
-          const dy = y - centerY;
+          const dx = offsetX - centerX;
+          const dy = offsetY - centerY;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
           // Calculate clearance: particle size + peg size + safety margin (all scaled)
           const minClearance = (config.particleSize * scaleFactor) + (12 *scaleFactor);
           if (distance < radius - minClearance) {
-            plinkos.push(new Plinko(x, y, config.pegSize * scaleFactor));
+            plinkos.push(new Plinko(offsetX, offsetY, config.pegSize * scaleFactor));
           }
         }
       }
@@ -289,15 +313,46 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
     const config = getConfig();
     const particleRadius = config.particleSize * scaleFactor;
     
-    // Load coin images for selection
-    const oneDollarImages = particleImages.filter((_, i) => i === 0 || i === 1);  // 1_01.png, 1_02.png
-    const tenDollarImages = particleImages.filter((_, i) => i === 2 || i === 3); // 10_01.png, 10_02.png
+    // Calculate total amount
+    const totalAmount = (tens * 10) + ones;
     
-    // Drop $10 coins with random image selection
-    for (let i = 0; i < tens; i++) {
+    // Load coin images for selection
+    const oneDollarImages = particleImages.filter((_, i) => i === 0 || i === 1);   // 1_01.png, 1_02.png
+    const tenDollarImages = particleImages.filter((_, i) => i === 2 || i === 3);  // 10_01.png, 10_02.png
+    const fiftyDollarImages = particleImages.filter((_, i) => i === 4);           // 50_01.png
+    
+    // Smart coin selection based on total amount
+    let fiftyCoins = 0;
+    let tenCoins = 0;
+    let oneCoins = 0;
+    
+    if (totalAmount >= 300) {
+      // For amounts >= $300, use $50 coins efficiently
+      fiftyCoins = Math.floor(totalAmount / 50);
+      const remainder = totalAmount % 50;
+      tenCoins = Math.floor(remainder / 10);
+      oneCoins = remainder % 10;
+      console.log(`💰 High value purchase: ${fiftyCoins}×$50 + ${tenCoins}×$10 + ${oneCoins}×$1 = $${totalAmount}`);
+    } else {
+      // For amounts < $300, use the original tens/ones logic
+      tenCoins = tens;
+      oneCoins = ones;
+    }
+    
+    // Drop $50 coins
+    for (let i = 0; i < fiftyCoins; i++) {
       const randomOffset = (Math.random() - 0.5) * 2 * (config.dropWidth * scaleFactor);
       const particle = new Particle(centerX + randomOffset, -100, particleRadius);
-      // Override image with random $10 coin
+      if (fiftyDollarImages.length > 0) {
+        particle.image = fiftyDollarImages[0];
+      }
+      particles.push(particle);
+    }
+    
+    // Drop $10 coins with random image selection
+    for (let i = 0; i < tenCoins; i++) {
+      const randomOffset = (Math.random() - 0.5) * 2 * (config.dropWidth * scaleFactor);
+      const particle = new Particle(centerX + randomOffset, -100, particleRadius);
       if (tenDollarImages.length > 0) {
         particle.image = tenDollarImages[Math.floor(Math.random() * tenDollarImages.length)];
       }
@@ -305,23 +360,22 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
     }
     
     // Drop $1 coins with random image selection
-    for (let i = 0; i < ones; i++) {
+    for (let i = 0; i < oneCoins; i++) {
       const randomOffset = (Math.random() - 0.5) * 2 * (config.dropWidth * scaleFactor);
       const particle = new Particle(centerX + randomOffset, -100, particleRadius);
-      // Override image with random $1 coin
       if (oneDollarImages.length > 0) {
         particle.image = oneDollarImages[Math.floor(Math.random() * oneDollarImages.length)];
       }
       particles.push(particle);
     }
     
-    console.log(`💰 Dropped ${tens}×$10 + ${ones}×$1 = ${tens + ones} coins`);
+    console.log(`💰 Dropped ${fiftyCoins}×$50 + ${tenCoins}×$10 + ${oneCoins}×$1 = ${fiftyCoins + tenCoins + oneCoins} coins (total: $${totalAmount})`);
   }
 
   // P5 sketch methods
   return {
     preload: () => {
-      const imageFiles = ['1_03.png', '1_04.png', '10_03.png', '10_04.png'];
+      const imageFiles = ['1_01.png', '1_02.png', '10_01.png', '10_02.png', '50_01.png'];
       for (let filename of imageFiles) {
         particleImages.push(p.loadImage(`assets/${filename}`));
       }
