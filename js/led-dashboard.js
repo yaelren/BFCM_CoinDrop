@@ -115,6 +115,7 @@ const ELEMENT_CONFIGS = {
       showClearanceZone: false,
       // Particle drop shadow
       particleShadowBlur: 27,
+      particleShadowSpread: 0,
       particleShadowColor: '#000000',
       particleShadowOpacity: 0.5,
       particleShadowOffsetX: -2,
@@ -144,30 +145,30 @@ const ELEMENT_CONFIGS = {
   totalOrders: {
     type: 'text',
     x: 1998,
-    y: 731,
+    y: 742,
     width: 642,
     height: 106,
     visible: true,
     zIndex: 5,
     background: { color: '#e2e4e5', opacity: 0 },
     config: {
-      lerpSpeed: 1,
       fontSize: 72,
       color: '#545454',
       prefix: '',
       suffix: '',
-      decimals: 0
+      decimals: 0,
+      lerpSpeed: 1
     }
   },
 
   sale: {
     type: 'slotMachine',
-    x: 3613,
-    y: 1175,
+    x: 3650,
+    y: 1155,
     width: 461,
     height: 149,
     visible: true,
-    zIndex: 5,
+    zIndex: 8,
     background: { color: '#000000', opacity: 0 },
     config: {
       animationStyle: 3,
@@ -176,15 +177,15 @@ const ELEMENT_CONFIGS = {
       dollarSpins: true,
       fontSize: 120,
       color: '#4f4f4f',
-      digitHeight: 60,
+      digitHeight: 140,
       maxDigits: 5  // Fixed 5-digit display (supports up to $99,999)
     }
   },
 
   onlineGPV: {
     type: 'slotMachine',
-    x: 3385,
-    y: 1531,
+    x: 3408,
+    y: 1548,
     width: 542,
     height: 104,
     visible: true,
@@ -198,7 +199,7 @@ const ELEMENT_CONFIGS = {
       fontSize: 72,
       color: '#545454',
       digitHeight: 60,
-      maxDigits: 5  // Fixed 5-digit display (supports up to $99,999)
+      maxDigits: 9  // Supports up to $999,999,999 (9 digits for large totals)
     }
   }
 };
