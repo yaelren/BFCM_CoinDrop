@@ -20,6 +20,7 @@ export class SlotMachineElement extends BaseElement {
         fontSize: config.fontSize || 48,
         color: config.color || '#FFFFFF',
         digitHeight: config.digitHeight || 60,
+        maxDigits: config.maxDigits || 5, // Fixed number of digit positions
         ...config.config
       }
     });
@@ -28,6 +29,7 @@ export class SlotMachineElement extends BaseElement {
     this.digitContainers = [];
     this.dollarContainer = null;
     this.activeAnimations = []; // Track active animations for cancellation
+    this.initialized = false; // Track if fixed digits have been created
   }
 
   createElement() {
@@ -41,48 +43,22 @@ export class SlotMachineElement extends BaseElement {
   }
 
   /**
-   * Create digit columns for the current value
+   * Create fixed digit columns (called once)
+   * Creates maxDigits positions with commas at fixed intervals
    */
-  createDigits(value) {
-    if (!this.container) return;
+  createFixedDigits() {
+    if (!this.container || this.initialized) return;
 
-    // Cancel all active animations before destroying DOM
+    // Cancel all active animations before setup
     this.cancelAllAnimations();
 
     // Clear existing digits
     this.container.innerHTML = '';
     this.digitContainers = [];
 
-    // Truncate decimal point (floor to whole number) and add commas
-    const valueStr = Math.abs(Math.floor(value)).toLocaleString('en-US');
-    const isNegative = value < 0;
-
-    // Dollar sign removed - no longer displaying currency symbol
-    this.dollarContainer = null;
-
-    // Add negative sign if needed
-    if (isNegative) {
-      const negativeSign = document.createElement('div');
-      negativeSign.className = 'slot-digit-static';
-      negativeSign.textContent = '-';
-      this.container.appendChild(negativeSign);
-    }
-
-    // Create digit containers
-    for (let i = 0; i < valueStr.length; i++) {
-      const char = valueStr[i];
-      
-      // Handle commas as static elements
-      if (char === ',') {
-        const commaEl = document.createElement('div');
-        commaEl.className = 'slot-digit-static';
-        commaEl.textContent = ',';
-        commaEl.style.marginLeft = '0.05em';
-        commaEl.style.marginRight = '0.05em';
-        this.container.appendChild(commaEl);
-        continue;
-      }
-      
+    // Create fixed number of digit positions (left to right in DOM)
+    // Position 0 is leftmost (ten-thousands), position 4 is rightmost (ones)
+    for (let position = 0; position < this.config.maxDigits; position++) {
       const digitWrapper = document.createElement('div');
       digitWrapper.className = 'slot-digit-wrapper';
       digitWrapper.style.cssText = `
@@ -103,7 +79,7 @@ export class SlotMachineElement extends BaseElement {
         transition: none;
       `;
 
-      // Add blank space at the top for new digits
+      // Add blank space at the top (position 0)
       const blankSpan = document.createElement('span');
       blankSpan.textContent = '';
       blankSpan.style.cssText = `
@@ -114,7 +90,7 @@ export class SlotMachineElement extends BaseElement {
       `;
       digitColumn.appendChild(blankSpan);
 
-      // Create all digits 0-9
+      // Create all digits 0-9 (positions 1-10)
       for (let digit = 0; digit <= 9; digit++) {
         const digitSpan = document.createElement('span');
         digitSpan.textContent = digit;
@@ -130,102 +106,63 @@ export class SlotMachineElement extends BaseElement {
       digitWrapper.appendChild(digitColumn);
       this.container.appendChild(digitWrapper);
 
+      // Store container with position index (0 = leftmost)
       this.digitContainers.push({
         wrapper: digitWrapper,
         column: digitColumn,
-        currentDigit: parseInt(char)
+        position: position,
+        currentDigit: null // null means showing blank
       });
 
-      // Set initial position (offset by 1 for blank space at top)
-      digitColumn.style.transform = `translateY(-${(parseInt(char) + 1) * this.config.digitHeight}px)`;
+      // Set initial position to blank (position 0)
+      digitColumn.style.transform = `translateY(0px)`;
     }
+
+    this.initialized = true;
   }
 
   /**
-   * Animate to new value
+   * Animate to new value using fixed digit positions
    */
   animateToValue(newValue) {
-    // Truncate decimal point (floor to whole numbers) and add commas
-    const newValueStr = Math.abs(Math.floor(newValue)).toLocaleString('en-US');
-    const oldValueStr = Math.abs(Math.floor(this.currentValue)).toLocaleString('en-US');
-    const newDigitsOnly = newValueStr.replace(/,/g, '');
-    const oldDigitsOnly = oldValueStr.replace(/,/g, '');
+    // Calculate delays for all positions
+    const delays = this.calculateDelays(this.config.maxDigits);
 
-    // If digit count changed, animate existing digits first, then recreate with new digits
-    if (newDigitsOnly.length !== oldDigitsOnly.length) {
-      const isIncreasing = newDigitsOnly.length > oldDigitsOnly.length;
-      const delays = this.calculateDelays(newDigitsOnly.length);
-      
-      if (isIncreasing) {
-        // Adding digits: animate existing digits to their new positions
-        const digitOffset = newDigitsOnly.length - oldDigitsOnly.length;
-        
-        // Animate existing digits (rightmost ones)
-        for (let i = 0; i < oldDigitsOnly.length && i < this.digitContainers.length; i++) {
-          const oldDigit = parseInt(oldDigitsOnly[i]);
-          const newDigit = parseInt(newDigitsOnly[digitOffset + i]);
-          
-          if (oldDigit !== newDigit) {
-            this.animateDigit(this.digitContainers[i], newDigit, delays[digitOffset + i], false);
-          }
-        }
-        
-        // After existing digits animate, recreate with all digits
-        setTimeout(() => {
-          this.currentValue = newValue;
-          this.createDigits(newValue);
-          
-          // Animate new leftmost digits from blank
-          for (let i = 0; i < digitOffset && i < this.digitContainers.length; i++) {
-            const targetDigit = parseInt(newDigitsOnly[i]);
-            this.animateDigit(this.digitContainers[i], targetDigit, delays[i], true);
-            this.digitContainers[i].currentDigit = targetDigit;
-          }
-        }, this.config.spinSpeed + Math.max(...delays.slice(digitOffset)) + 50);
-        
+    // Get the actual number string WITHOUT padding to get real digits (floor to remove decimals)
+    const wholeNumber = Math.abs(Math.floor(newValue));
+    const actualNumberStr = wholeNumber.toString();
+    const actualNumberLength = actualNumberStr.length;
+    const numLeadingBlanks = this.config.maxDigits - actualNumberLength;
+
+    // Animate each fixed position
+    for (let i = 0; i < this.config.maxDigits; i++) {
+      const digitContainer = this.digitContainers[i];
+
+      // Determine if this position should show a digit or blank
+      const isLeadingPosition = i < numLeadingBlanks;
+
+      let displayDigit;
+      if (isLeadingPosition) {
+        // Leading position: always show blank
+        displayDigit = null;
       } else {
-        // Removing digits: animate remaining digits
-        const digitOffset = oldDigitsOnly.length - newDigitsOnly.length;
-        
-        // Animate the digits that will remain (rightmost ones)
-        for (let i = 0; i < newDigitsOnly.length && (digitOffset + i) < this.digitContainers.length; i++) {
-          const oldDigit = parseInt(oldDigitsOnly[digitOffset + i]);
-          const newDigit = parseInt(newDigitsOnly[i]);
-          
-          if (oldDigit !== newDigit) {
-            this.animateDigit(this.digitContainers[digitOffset + i], newDigit, delays[i], false);
-          }
-        }
-        
-        // After animation, recreate with fewer digits
-        setTimeout(() => {
-          this.currentValue = newValue;
-          this.createDigits(newValue);
-        }, this.config.spinSpeed + Math.max(...delays) + 50);
+        // Non-leading position: show digit from actual number
+        // Map display position to actual number position
+        const digitIndex = i - numLeadingBlanks;
+        displayDigit = parseInt(actualNumberStr[digitIndex]);
       }
-      
-      return;
+
+      // Check if value changed (handle null comparison properly)
+      const hasChanged = displayDigit !== digitContainer.currentDigit;
+
+      if (hasChanged) {
+        // Pass true for startFromBlank if currently showing blank (null)
+        this.animateDigit(digitContainer, displayDigit, delays[i], digitContainer.currentDigit === null);
+        digitContainer.currentDigit = displayDigit;
+      }
     }
 
-    // Dollar sign animation removed - no currency symbol to animate
-
-    // Animate each digit based on style
-    // Filter out commas to get only digit positions
-    const delays = this.calculateDelays(newDigitsOnly.length);
-
-    let digitIndex = 0;
-    this.digitContainers.forEach((digitContainer) => {
-      const targetDigit = parseInt(newDigitsOnly[digitIndex]);
-      const currentDigit = digitContainer.currentDigit;
-
-      if (targetDigit !== currentDigit) {
-        this.animateDigit(digitContainer, targetDigit, delays[digitIndex], false);
-        digitContainer.currentDigit = targetDigit;
-      }
-      digitIndex++;
-    });
-
-    this.currentValue = newValue;
+    this.currentValue = wholeNumber;
   }
 
   /**
@@ -262,13 +199,22 @@ export class SlotMachineElement extends BaseElement {
 
   /**
    * Animate a single digit
+   * @param {Object} digitContainer - Container object with column reference
+   * @param {number|null} targetDigit - Target digit (0-9) or null for blank
+   * @param {number} delay - Animation delay in ms
+   * @param {boolean} startFromBlank - Whether currently showing blank
    */
   animateDigit(digitContainer, targetDigit, delay, startFromBlank = false) {
     const column = digitContainer.column;
-    // Offset by 1 for blank space at top (position 0 = blank, 1-10 = digits 0-9)
-    const targetY = -(targetDigit + 1) * this.config.digitHeight;
 
-    // If starting from blank, set initial position to 0 (blank)
+    // Calculate target Y position
+    // Position 0 = blank space at top
+    // Positions 1-10 = digits 0-9
+    const targetY = targetDigit === null
+      ? 0  // Show blank
+      : -(targetDigit + 1) * this.config.digitHeight;  // Show digit
+
+    // If starting from blank, ensure we're at position 0
     if (startFromBlank) {
       column.style.transform = `translateY(0px)`;
     }
@@ -343,10 +289,10 @@ export class SlotMachineElement extends BaseElement {
       return;
     }
 
-    // First time: set without animation
-    if (this.digitContainers.length === 0) {
-      this.currentValue = newValue;
-      this.createDigits(newValue);
+    // First time: create fixed digit structure
+    if (!this.initialized) {
+      this.createFixedDigits();
+      this.setValue(newValue);
     } else {
       this.animateToValue(newValue);
     }
@@ -363,9 +309,12 @@ export class SlotMachineElement extends BaseElement {
       this.container.style.color = this.config.color;
     }
 
-    // Recreate digits if digit height changed
-    if (newConfig.digitHeight && newConfig.digitHeight !== this.config.digitHeight) {
-      this.createDigits(this.currentValue);
+    // Recreate fixed digits if digit height or maxDigits changed
+    if ((newConfig.digitHeight && newConfig.digitHeight !== this.config.digitHeight) ||
+        (newConfig.maxDigits && newConfig.maxDigits !== this.config.maxDigits)) {
+      this.initialized = false;
+      this.createFixedDigits();
+      this.setValue(this.currentValue);
     }
   }
 
@@ -374,6 +323,40 @@ export class SlotMachineElement extends BaseElement {
    */
   setValue(value) {
     this.currentValue = value;
-    this.createDigits(value);
+
+    if (!this.initialized) {
+      this.createFixedDigits();
+    }
+
+    // Get the actual number string WITHOUT padding
+    const actualNumberStr = Math.abs(Math.floor(value)).toString();
+    const actualNumberLength = actualNumberStr.length;
+    const numLeadingBlanks = this.config.maxDigits - actualNumberLength;
+
+    for (let i = 0; i < this.config.maxDigits; i++) {
+      const digitContainer = this.digitContainers[i];
+
+      // Determine if this position should show a digit or blank
+      const isLeadingPosition = i < numLeadingBlanks;
+
+      let displayDigit;
+      if (isLeadingPosition) {
+        // Leading position: always show blank
+        displayDigit = null;
+      } else {
+        // Non-leading position: show digit from actual number
+        const digitIndex = i - numLeadingBlanks;
+        displayDigit = parseInt(actualNumberStr[digitIndex]);
+      }
+
+      digitContainer.currentDigit = displayDigit;
+
+      // Set position directly without animation
+      const targetY = displayDigit === null
+        ? 0  // Show blank space
+        : -(displayDigit + 1) * this.config.digitHeight;  // Show digit (offset by 1 for blank at top)
+
+      digitContainer.column.style.transform = `translateY(${targetY}px)`;
+    }
   }
 }

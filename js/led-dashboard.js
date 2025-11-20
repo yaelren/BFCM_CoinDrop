@@ -112,7 +112,13 @@ const ELEMENT_CONFIGS = {
       // Visibility settings
       showBoundaries: false,
       showPegs: true,
-      showClearanceZone: false
+      showClearanceZone: false,
+      // Particle drop shadow
+      particleShadowBlur: 27,
+      particleShadowColor: '#000000',
+      particleShadowOpacity: 0.5,
+      particleShadowOffsetX: -2,
+      particleShadowOffsetY: 10
     }
   },
 
@@ -170,7 +176,8 @@ const ELEMENT_CONFIGS = {
       dollarSpins: true,
       fontSize: 120,
       color: '#4f4f4f',
-      digitHeight: 60
+      digitHeight: 60,
+      maxDigits: 5  // Fixed 5-digit display (supports up to $99,999)
     }
   },
 
@@ -190,7 +197,8 @@ const ELEMENT_CONFIGS = {
       dollarSpins: false,
       fontSize: 72,
       color: '#545454',
-      digitHeight: 60
+      digitHeight: 60,
+      maxDigits: 5  // Fixed 5-digit display (supports up to $99,999)
     }
   }
 };
