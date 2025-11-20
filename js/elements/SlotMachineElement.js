@@ -64,10 +64,9 @@ export class SlotMachineElement extends BaseElement {
       digitWrapper.style.cssText = `
         overflow: hidden;
         height: ${this.config.digitHeight}px;
-        line-height: ${this.config.digitHeight}px;
         display: inline-block;
         position: relative;
-        vertical-align: top;
+        vertical-align: middle;
       `;
 
       const digitColumn = document.createElement('div');
@@ -99,6 +98,7 @@ export class SlotMachineElement extends BaseElement {
           line-height: ${this.config.digitHeight}px;
           display: block;
           text-align: center;
+          overflow: hidden;
         `;
         digitColumn.appendChild(digitSpan);
       }
