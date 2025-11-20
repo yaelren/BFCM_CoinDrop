@@ -5,6 +5,7 @@
 
 import { LayoutManager } from './core/LayoutManager.js';
 import { CounterElement } from './elements/CounterElement.js';
+import { TextElement } from './elements/TextElement.js';
 import { SlotMachineElement } from './elements/SlotMachineElement.js';
 import { TickerElement } from './elements/TickerElement.js';
 import { MapElement } from './elements/MapElement.js';
@@ -24,17 +25,17 @@ import { OrderProcessor } from './core/OrderProcessor.js';
 const ELEMENT_CONFIGS = {
   storeName: {
     type: 'ticker',
-    x: 134,
-    y: 192,
-    width: 884,
-    height: 120,
+    x: 215,
+    y: 207,
+    width: 790,
+    height: 110,
     visible: true,
     zIndex: 16,
     background: { color: '#dbe1e4', opacity: 0 },
     config: {
       scrollSpeed: 63,
       maxQueue: 10,
-      fontSize: 32,
+      fontSize: 72,
       color: '#333333',
       separator: '   '
     }
@@ -45,7 +46,7 @@ const ELEMENT_CONFIGS = {
     x: 134,
     y: 657,
     width: 713,
-    height: 469,
+    height: 534,
     visible: true,
     zIndex: 5,
     background: { color: '#0a0a1a', opacity: 0 },
@@ -67,10 +68,10 @@ const ELEMENT_CONFIGS = {
       dotFadeDuration: 8000,
       showLocationLabel: true,
       locationLabelDuration: 5000,
-      locationLabelFontSize: 32,
+      locationLabelFontSize: 36,
       locationLabelColor: '#333333',
       locationLabelPosition: 'bottom',
-      locationLabelOffset: 10
+      locationLabelOffset: 0
     }
   },
 
@@ -88,8 +89,8 @@ const ELEMENT_CONFIGS = {
       // Plinko game settings
       cols: 20,
       rows: 10,
-      pegSize: 20,
-      particleSize: 45,
+      pegSize: 11,
+      particleSize: 51,
       particleSpawnRate: 9,
       maxParticles: 100,
       dropWidth: 500,
@@ -104,11 +105,12 @@ const ELEMENT_CONFIGS = {
       particleFriction: 0.55,
       particleDensity: 1,
       particleFrictionAir: 0.01,
+      coinColliderRatio: 0.35,
       // Peg physics settings
       pegRestitution: 0.8,
       pegFriction: 0,
       // Visibility settings
-      showBoundaries: true,
+      showBoundaries: false,
       showPegs: true,
       showClearanceZone: false
     }
@@ -116,35 +118,35 @@ const ELEMENT_CONFIGS = {
 
   totalSales: {
     type: 'counter',
-    x: 1700,
-    y: 305,
-    width: 1224,
+    x: 1714,
+    y: 327,
+    width: 1022,
     height: 224,
     visible: true,
     zIndex: 5,
     background: { color: '#e3e4e5', opacity: 0 },
     config: {
       lerpSpeed: 1,
-      fontSize: 66,
+      fontSize: 150,
       color: '#404040',
-      prefix: '$',
+      prefix: '',
       suffix: '',
       decimals: 0
     }
   },
 
   totalOrders: {
-    type: 'counter',
-    x: 2043,
-    y: 708,
-    width: 693,
-    height: 134,
+    type: 'text',
+    x: 1998,
+    y: 731,
+    width: 642,
+    height: 106,
     visible: true,
     zIndex: 5,
     background: { color: '#e2e4e5', opacity: 0 },
     config: {
       lerpSpeed: 1,
-      fontSize: 33,
+      fontSize: 72,
       color: '#545454',
       prefix: '',
       suffix: '',
@@ -164,8 +166,9 @@ const ELEMENT_CONFIGS = {
     config: {
       animationStyle: 3,
       spinSpeed: 2000,
+      easing: 'easeOutExpo',
       dollarSpins: true,
-      fontSize: 98,
+      fontSize: 120,
       color: '#4f4f4f',
       digitHeight: 60
     }
@@ -183,8 +186,9 @@ const ELEMENT_CONFIGS = {
     config: {
       animationStyle: 1,
       spinSpeed: 800,
+      easing: 'easeOutExpo',
       dollarSpins: false,
-      fontSize: 75,
+      fontSize: 72,
       color: '#545454',
       digitHeight: 60
     }
@@ -218,11 +222,11 @@ class LEDDashboard {
       // Create and register all elements
       this.createElements();
 
-      // Setup GUI controls
-      this.layoutManager.setupGUI(GUI);
-
       // Initialize real-time processing system
       await this.initProcessingSystem();
+
+      // Setup GUI controls (after processor is initialized)
+      this.layoutManager.setupGUI(GUI, this.processor);
 
       // DISABLED: Demo data simulation (using real API now)
       // this.loadDemoData();
@@ -257,8 +261,8 @@ class LEDDashboard {
     this.elements.totalSales = new CounterElement('totalSales', ELEMENT_CONFIGS.totalSales);
     this.layoutManager.registerElement(this.elements.totalSales);
 
-    // Total Orders Counter
-    this.elements.totalOrders = new CounterElement('totalOrders', ELEMENT_CONFIGS.totalOrders);
+    // Total Orders Text
+    this.elements.totalOrders = new TextElement('totalOrders', ELEMENT_CONFIGS.totalOrders);
     this.layoutManager.registerElement(this.elements.totalOrders);
 
     // Sale Slot Machine
@@ -441,9 +445,9 @@ class LEDDashboard {
     console.log('📊 TOTALS API RECONCILIATION');
     console.log('═════════════════════════════════════════════════════');
     
-    // Total Orders
+    // Total Orders (TextElement uses currentValue, not targetValue)
     if (this.elements.totalOrders) {
-      const localOrders = this.elements.totalOrders.targetValue || 0;
+      const localOrders = this.elements.totalOrders.currentValue || 0;
       const apiOrders = totals.orders_count.online;
       if (localOrders !== apiOrders) {
         console.log(`⚠️ Orders drift detected: Local=${localOrders}, API=${apiOrders}`);

@@ -30,7 +30,7 @@ export class CounterElement extends BaseElement {
 
   createElement() {
     const container = document.createElement('div');
-    container.className = 'counter-element flex items-center justify-center';
+    container.className = 'counter-element flex items-end justify-end';
 
     this.displayElement = document.createElement('div');
     this.displayElement.className = 'counter-display';
@@ -52,9 +52,9 @@ export class CounterElement extends BaseElement {
 
     this.displayElement.style.fontSize = toResponsiveUnit(this.config.fontSize);
     this.displayElement.style.color = this.config.color;
-    this.displayElement.style.textAlign = 'center';
+    this.displayElement.style.textAlign = 'right';
     this.displayElement.style.width = '100%';
-    this.displayElement.style.fontWeight = '400';
+    this.displayElement.style.fontWeight = '250';
   }
 
   /**

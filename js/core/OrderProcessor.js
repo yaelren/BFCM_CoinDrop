@@ -21,7 +21,9 @@ export class OrderProcessor {
     this.queueManager = queueManager;
     this.dashboard = dashboard;
     this.config = {
-      minDisplayTime: config.minDisplayTime || 3000  // Default 3 seconds
+      minDisplayTime: config.minDisplayTime || 3000,  // Default 3 seconds between orders
+      saleToPlinkDelay: config.saleToPlinkDelay || 200,  // Delay from sale to plinko
+      plinkoToCountersDelay: config.plinkoToCountersDelay || 300  // Delay before counters update
     };
 
     this.isProcessing = false;
@@ -136,7 +138,8 @@ export class OrderProcessor {
 
     // 4. Extract data
     const location = `${order.location.city || 'Unknown'}, ${order.location.country || 'Unknown'}`;
-    const businessName = order.metadata?.business_name || 'N/A';
+    const businessName = order.metadata?.business_name || 'N/A';    console.log(`🔍 Extracted business name: "${businessName}"`);
+    console.log(`🔍 Order metadata:`, order.metadata);
 
     // Log processing details with emphasis on amount and coins
     console.log('═════════════════════════════════════════════════════');
@@ -146,16 +149,28 @@ export class OrderProcessor {
     console.log(`   %cCoins: ${tens}×$10 + ${ones}×$1 = ${tens + ones} TOTAL`, 'font-weight: bold; font-size: 14px; color: #FF9800');
     console.log('═════════════════════════════════════════════════════');
 
-    // PHASE II: Update elements in parallel
-    await Promise.all([
-      this.updateSale(usdAmount),
-      this.updateLocation(order),
-      this.updateStoreName(businessName),
-      this.updateCounters(usdAmount)
-    ]);
-
-    // Drop coins (non-blocking)
+    // PHASE II: Update elements in sequence
+    // 1. Sale element (with animation)
+    await this.updateSale(usdAmount);
+    
+    // 2. Wait for sale animation to start, then trigger Plinko
+    await this.delay(this.config.saleToPlinkDelay);
     this.dropCoins(tens, ones);
+    
+    // 3. Update other elements (location, store name)
+    await this.updateLocation(order);
+    await this.updateStoreName(businessName);
+    
+    // 4. Finally update counters (total sales and orders)
+    await this.delay(this.config.plinkoToCountersDelay);
+    await this.updateCounters(usdAmount);
+  }
+
+  /**
+   * Helper to create delay
+   */
+  delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
@@ -181,6 +196,12 @@ export class OrderProcessor {
   /**
    * Update store name element
    */
+  /**
+   * Update store name element
+   */
+  /**
+   * Update store name element
+   */
   async updateStoreName(businessName) {
     if (!this.dashboard.elements.storeName) return;
     this.dashboard.elements.storeName.addName(businessName);
@@ -191,9 +212,9 @@ export class OrderProcessor {
    * Note: onlineGPV is updated from totals API only, not from individual orders
    */
   async updateCounters(usdAmount) {
-    // Increment total orders
+    // Increment total orders (TextElement uses currentValue, not targetValue)
     if (this.dashboard.elements.totalOrders) {
-      const current = this.dashboard.elements.totalOrders.targetValue || 0;
+      const current = this.dashboard.elements.totalOrders.currentValue || 0;
       this.dashboard.elements.totalOrders.updateData(current + 1);
     }
 
@@ -223,6 +244,22 @@ export class OrderProcessor {
     }
 
     sketch.dropCoins(tens, ones);
+  }
+
+  /**
+   * Get configuration (for GUI controls)
+   * @returns {Object} Configuration object
+   */
+  getConfig() {
+    return this.config;
+  }
+
+  /**
+   * Update configuration
+   * @param {Object} newConfig - New configuration values
+   */
+  updateConfig(newConfig) {
+    Object.assign(this.config, newConfig);
   }
 
   /**

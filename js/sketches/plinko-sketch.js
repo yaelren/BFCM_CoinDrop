@@ -48,7 +48,9 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
     particleFrictionAir: externalConfig.particleFrictionAir ?? 0.01,
     // Peg physics
     pegRestitution: externalConfig.pegRestitution ?? 0.8,
-    pegFriction: externalConfig.pegFriction ?? 0
+    pegFriction: externalConfig.pegFriction ?? 0,
+    // Coin collider size (ratio of visual size)
+    coinColliderRatio: externalConfig.coinColliderRatio ?? 0.35
   });
 
   // Particle class
@@ -64,7 +66,7 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
         frictionAir: config.particleFrictionAir
       };
       x += Math.random() * 2 - 1;
-      const collisionRadius = r * 0.35;
+      const collisionRadius = r * config.coinColliderRatio;
       this.body = Bodies.circle(x, y, collisionRadius, options);
       this.body.label = "particle";
       this.r = r;
@@ -184,6 +186,9 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
     const centerX = p.width / 2;
     const centerY = (p.height / 2) + (config.boundaryCenterY * scaleFactor);
     const radius = config.boundaryRadius * scaleFactor;
+    
+    // Calculate starting Y position at the top of the circle
+    const startY = centerY - radius;
 
     for (let j = 0; j < config.rows; j++) {
       for (let i = 0; i < config.cols + 1; i++) {
@@ -191,7 +196,7 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
         if (j % 2 === 0) {
           x += spacing / 2;
         }
-        const y = spacing + j * spacing;
+        const y = startY + j * spacing;
 
         if (config.boundaryRadius <= 0) {
           plinkos.push(new Plinko(x, y, config.pegSize * scaleFactor));

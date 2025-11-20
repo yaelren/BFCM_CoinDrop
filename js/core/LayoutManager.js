@@ -103,10 +103,13 @@ export class LayoutManager {
   /**
    * Setup lil-gui controls for all elements
    */
-  setupGUI(GUI) {
+  setupGUI(GUI, orderProcessor = null) {
     // Clean up existing GUIs
     if (this.positionGUI) this.positionGUI.destroy();
     if (this.controlsGUI) this.controlsGUI.destroy();
+
+    // Store reference for animation timing
+    this.orderProcessor = orderProcessor;
 
     // GUI 1: Position Controls
     this.setupPositionGUI(GUI);
@@ -198,6 +201,26 @@ export class LayoutManager {
     this.controlsGUI.domElement.style.left = 'auto';
     this.controlsGUI.domElement.style.right = '10px';
 
+    // Animation Timing Controls (if order processor provided)
+    if (this.orderProcessor) {
+      const timingFolder = this.controlsGUI.addFolder('⏱️ Animation Timing');
+      const processorConfig = this.orderProcessor.getConfig();
+
+      timingFolder.add(processorConfig, 'minDisplayTime', 1000, 10000, 100)
+        .name('Time Between Orders (ms)')
+        .onChange(() => this.orderProcessor.updateConfig(processorConfig));
+
+      timingFolder.add(processorConfig, 'saleToPlinkDelay', 0, 2000, 50)
+        .name('Sale → Plinko Delay (ms)')
+        .onChange(() => this.orderProcessor.updateConfig(processorConfig));
+
+      timingFolder.add(processorConfig, 'plinkoToCountersDelay', 0, 2000, 50)
+        .name('Plinko → Counters Delay (ms)')
+        .onChange(() => this.orderProcessor.updateConfig(processorConfig));
+
+      timingFolder.open();
+    }
+
     // Create folder for each element
     this.elements.forEach(element => {
       const config = element.getConfig();
@@ -279,8 +302,26 @@ export class LayoutManager {
             .onChange(() => element.updateConfig(config));
         }
         if (config.spinSpeed !== undefined) {
-          folder.add(config, 'spinSpeed', 200, 2000, 50)
+          folder.add(config, 'spinSpeed', 200, 3000, 50)
             .name('Spin Duration (ms)')
+            .onChange(() => element.updateConfig(config));
+        }
+        if (config.easing !== undefined) {
+          folder.add(config, 'easing', {
+            'Linear': 'linear',
+            'Ease Out Expo': 'easeOutExpo',
+            'Ease Out Cubic': 'easeOutCubic',
+            'Ease Out Quad': 'easeOutQuad',
+            'Ease Out Quart': 'easeOutQuart',
+            'Ease Out Quint': 'easeOutQuint',
+            'Ease Out Sine': 'easeOutSine',
+            'Ease Out Back': 'easeOutBack',
+            'Ease Out Elastic': 'easeOutElastic(1, .6)',
+            'Ease Out Bounce': 'easeOutBounce',
+            'Ease In Out Expo': 'easeInOutExpo',
+            'Ease In Out Cubic': 'easeInOutCubic'
+          })
+            .name('Easing')
             .onChange(() => element.updateConfig(config));
         }
         if (config.dollarSpins !== undefined) {
@@ -377,6 +418,11 @@ export class LayoutManager {
             .name('Particle Size')
             .onChange(() => element.updateConfig(config));
         }
+        if (config.coinColliderRatio !== undefined) {
+          folder.add(config, 'coinColliderRatio', 0.1, 1.0, 0.05)
+            .name('Coin Collider Ratio')
+            .onChange(() => element.updateConfig(config));
+        }
 
         // Background
         if (config.backgroundColor !== undefined) {
@@ -402,7 +448,7 @@ export class LayoutManager {
             .onChange(() => element.updateConfig(config));
         }
         if (config.dropWidth !== undefined) {
-          folder.add(config, 'dropWidth', 50, 500, 10)
+          folder.add(config, 'dropWidth', 50, 1500, 10)
             .name('Drop Width')
             .onChange(() => element.updateConfig(config));
         }

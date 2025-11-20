@@ -15,6 +15,7 @@ export class SlotMachineElement extends BaseElement {
       config: {
         animationStyle: config.animationStyle || 1, // 1=all, 2=sequential, 3=random
         spinSpeed: config.spinSpeed || 800,
+        easing: config.easing || 'easeOutExpo',
         dollarSpins: config.dollarSpins !== undefined ? config.dollarSpins : false,
         fontSize: config.fontSize || 48,
         color: config.color || '#FFFFFF',
@@ -31,10 +32,10 @@ export class SlotMachineElement extends BaseElement {
 
   createElement() {
     const container = document.createElement('div');
-    container.className = 'slot-machine-element flex items-center justify-center';
+    container.className = 'slot-machine-element flex items-start justify-end';
     container.style.fontSize = toResponsiveUnit(this.config.fontSize);
     container.style.color = this.config.color;
-    container.style.fontWeight = '400';
+    container.style.fontWeight = '250';
 
     return container;
   }
@@ -87,8 +88,10 @@ export class SlotMachineElement extends BaseElement {
       digitWrapper.style.cssText = `
         overflow: hidden;
         height: ${this.config.digitHeight}px;
+        line-height: ${this.config.digitHeight}px;
         display: inline-block;
         position: relative;
+        vertical-align: top;
       `;
 
       const digitColumn = document.createElement('div');
@@ -100,15 +103,26 @@ export class SlotMachineElement extends BaseElement {
         transition: none;
       `;
 
+      // Add blank space at the top for new digits
+      const blankSpan = document.createElement('span');
+      blankSpan.textContent = '';
+      blankSpan.style.cssText = `
+        height: ${this.config.digitHeight}px;
+        line-height: ${this.config.digitHeight}px;
+        display: block;
+        text-align: center;
+      `;
+      digitColumn.appendChild(blankSpan);
+
       // Create all digits 0-9
       for (let digit = 0; digit <= 9; digit++) {
         const digitSpan = document.createElement('span');
         digitSpan.textContent = digit;
         digitSpan.style.cssText = `
           height: ${this.config.digitHeight}px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          line-height: ${this.config.digitHeight}px;
+          display: block;
+          text-align: center;
         `;
         digitColumn.appendChild(digitSpan);
       }
@@ -122,8 +136,8 @@ export class SlotMachineElement extends BaseElement {
         currentDigit: parseInt(char)
       });
 
-      // Set initial position
-      digitColumn.style.transform = `translateY(-${parseInt(char) * this.config.digitHeight}px)`;
+      // Set initial position (offset by 1 for blank space at top)
+      digitColumn.style.transform = `translateY(-${(parseInt(char) + 1) * this.config.digitHeight}px)`;
     }
   }
 
@@ -134,11 +148,62 @@ export class SlotMachineElement extends BaseElement {
     // Truncate decimal point (floor to whole numbers) and add commas
     const newValueStr = Math.abs(Math.floor(newValue)).toLocaleString('en-US');
     const oldValueStr = Math.abs(Math.floor(this.currentValue)).toLocaleString('en-US');
+    const newDigitsOnly = newValueStr.replace(/,/g, '');
+    const oldDigitsOnly = oldValueStr.replace(/,/g, '');
 
-    // If digit count changed, recreate digits
-    if (newValueStr.length !== oldValueStr.length) {
-      this.currentValue = newValue; // Update current value BEFORE recreating
-      this.createDigits(newValue);
+    // If digit count changed, animate existing digits first, then recreate with new digits
+    if (newDigitsOnly.length !== oldDigitsOnly.length) {
+      const isIncreasing = newDigitsOnly.length > oldDigitsOnly.length;
+      const delays = this.calculateDelays(newDigitsOnly.length);
+      
+      if (isIncreasing) {
+        // Adding digits: animate existing digits to their new positions
+        const digitOffset = newDigitsOnly.length - oldDigitsOnly.length;
+        
+        // Animate existing digits (rightmost ones)
+        for (let i = 0; i < oldDigitsOnly.length && i < this.digitContainers.length; i++) {
+          const oldDigit = parseInt(oldDigitsOnly[i]);
+          const newDigit = parseInt(newDigitsOnly[digitOffset + i]);
+          
+          if (oldDigit !== newDigit) {
+            this.animateDigit(this.digitContainers[i], newDigit, delays[digitOffset + i], false);
+          }
+        }
+        
+        // After existing digits animate, recreate with all digits
+        setTimeout(() => {
+          this.currentValue = newValue;
+          this.createDigits(newValue);
+          
+          // Animate new leftmost digits from blank
+          for (let i = 0; i < digitOffset && i < this.digitContainers.length; i++) {
+            const targetDigit = parseInt(newDigitsOnly[i]);
+            this.animateDigit(this.digitContainers[i], targetDigit, delays[i], true);
+            this.digitContainers[i].currentDigit = targetDigit;
+          }
+        }, this.config.spinSpeed + Math.max(...delays.slice(digitOffset)) + 50);
+        
+      } else {
+        // Removing digits: animate remaining digits
+        const digitOffset = oldDigitsOnly.length - newDigitsOnly.length;
+        
+        // Animate the digits that will remain (rightmost ones)
+        for (let i = 0; i < newDigitsOnly.length && (digitOffset + i) < this.digitContainers.length; i++) {
+          const oldDigit = parseInt(oldDigitsOnly[digitOffset + i]);
+          const newDigit = parseInt(newDigitsOnly[i]);
+          
+          if (oldDigit !== newDigit) {
+            this.animateDigit(this.digitContainers[digitOffset + i], newDigit, delays[i], false);
+          }
+        }
+        
+        // After animation, recreate with fewer digits
+        setTimeout(() => {
+          this.currentValue = newValue;
+          this.createDigits(newValue);
+        }, this.config.spinSpeed + Math.max(...delays) + 50);
+      }
+      
       return;
     }
 
@@ -146,16 +211,15 @@ export class SlotMachineElement extends BaseElement {
 
     // Animate each digit based on style
     // Filter out commas to get only digit positions
-    const digitsOnly = newValueStr.replace(/,/g, '');
-    const delays = this.calculateDelays(digitsOnly.length);
+    const delays = this.calculateDelays(newDigitsOnly.length);
 
     let digitIndex = 0;
     this.digitContainers.forEach((digitContainer) => {
-      const targetDigit = parseInt(digitsOnly[digitIndex]);
+      const targetDigit = parseInt(newDigitsOnly[digitIndex]);
       const currentDigit = digitContainer.currentDigit;
 
       if (targetDigit !== currentDigit) {
-        this.animateDigit(digitContainer, targetDigit, delays[digitIndex]);
+        this.animateDigit(digitContainer, targetDigit, delays[digitIndex], false);
         digitContainer.currentDigit = targetDigit;
       }
       digitIndex++;
@@ -199,16 +263,22 @@ export class SlotMachineElement extends BaseElement {
   /**
    * Animate a single digit
    */
-  animateDigit(digitContainer, targetDigit, delay) {
+  animateDigit(digitContainer, targetDigit, delay, startFromBlank = false) {
     const column = digitContainer.column;
-    const targetY = -targetDigit * this.config.digitHeight;
+    // Offset by 1 for blank space at top (position 0 = blank, 1-10 = digits 0-9)
+    const targetY = -(targetDigit + 1) * this.config.digitHeight;
+
+    // If starting from blank, set initial position to 0 (blank)
+    if (startFromBlank) {
+      column.style.transform = `translateY(0px)`;
+    }
 
     const animation = anime({
       targets: column,
       translateY: targetY,
       duration: this.config.spinSpeed,
       delay: delay,
-      easing: 'easeOutElastic(1, .6)',
+      easing: this.config.easing,
       complete: () => {
         // Remove from active animations when complete
         const index = this.activeAnimations.indexOf(animation);

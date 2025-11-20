@@ -34,6 +34,9 @@ export class TickerElement extends BaseElement {
       overflow: hidden;
       white-space: nowrap;
       position: relative;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
     `;
 
     this.tickerContent = document.createElement('div');
@@ -42,9 +45,10 @@ export class TickerElement extends BaseElement {
       display: inline-block;
       position: absolute;
       left: 0;
+      bottom: 0;
       font-size: ${toResponsiveUnit(this.config.fontSize)};
       color: ${this.config.color};
-      font-weight: 400;
+      font-weight: 250;
     `;
 
     container.appendChild(this.tickerContent);
@@ -55,6 +59,12 @@ export class TickerElement extends BaseElement {
     this.startScrolling();
   }
 
+  /**
+   * Add a new name to the ticker queue
+   */
+  /**
+   * Add a new name to the ticker queue
+   */
   /**
    * Add a new name to the ticker queue
    */
@@ -76,6 +86,12 @@ export class TickerElement extends BaseElement {
   /**
    * Update ticker text content
    */
+  /**
+   * Update ticker text content
+   */
+  /**
+   * Update ticker text content
+   */
   updateTickerText() {
     if (!this.tickerContent || this.queue.length === 0) return;
 
@@ -85,6 +101,12 @@ export class TickerElement extends BaseElement {
     this.tickerContent.textContent = `${queueText}${this.config.separator}${queueText}${this.config.separator}${queueText}`;
   }
 
+  /**
+   * Start the scrolling animation
+   */
+  /**
+   * Start the scrolling animation
+   */
   /**
    * Start the scrolling animation
    */
