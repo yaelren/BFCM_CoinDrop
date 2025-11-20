@@ -104,6 +104,9 @@ const ELEMENT_CONFIGS = {
       // Peg positioning
       pegOffsetX: 0,
       pegOffsetY: 0,
+      // Removed pegs configuration (row: [columns])
+      // Example: { 0: [5, 10], 1: [3] } removes pegs at column 5 & 10 in row 0, column 3 in row 1
+      removedPegs: {},
       // Particle physics settings
       particleRestitution: 0.45,
       particleFriction: 0.3,

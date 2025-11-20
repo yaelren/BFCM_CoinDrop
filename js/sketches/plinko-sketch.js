@@ -40,6 +40,10 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
     // Peg positioning offsets
     pegOffsetX: externalConfig.pegOffsetX ?? 0,
     pegOffsetY: externalConfig.pegOffsetY ?? 0,
+    // Peg removal configuration
+    // Format: { rowIndex: [colIndex1, colIndex2, ...] }
+    // Example: { 0: [5, 10], 1: [3] } removes pegs at column 5 and 10 in row 0, column 3 in row 1
+    removedPegs: externalConfig.removedPegs ?? {},
     // Visibility controls
     showBoundaries: externalConfig.showBoundaries ?? true,
     showPegs: externalConfig.showPegs ?? true,
@@ -212,6 +216,12 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
 
     for (let j = 0; j < config.rows; j++) {
       for (let i = 0; i < config.cols + 1; i++) {
+        // Check if this peg should be removed
+        const removedInRow = config.removedPegs[j] || [];
+        if (removedInRow.includes(i)) {
+          continue; // Skip this peg
+        }
+
         let x = i * spacing;
         if (j % 2 === 0) {
           x += spacing / 2;
