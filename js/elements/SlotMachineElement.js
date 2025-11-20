@@ -21,6 +21,7 @@ export class SlotMachineElement extends BaseElement {
         color: config.color || '#FFFFFF',
         digitHeight: config.digitHeight || 60,
         maxDigits: config.maxDigits || 5, // Fixed number of digit positions
+        digitDelay: config.digitDelay || 100, // Delay between digits for sequential animation (ms)
         ...config.config
       }
     });
@@ -37,7 +38,7 @@ export class SlotMachineElement extends BaseElement {
     container.className = 'slot-machine-element flex items-start justify-end';
     container.style.fontSize = toResponsiveUnit(this.config.fontSize);
     container.style.color = this.config.color;
-    container.style.fontWeight = '250';
+    container.style.fontWeight = '300';
 
     return container;
   }
@@ -180,13 +181,13 @@ export class SlotMachineElement extends BaseElement {
 
       case 2: // Sequential (right to left)
         for (let i = 0; i < digitCount; i++) {
-          delays.push((digitCount - 1 - i) * 100);
+          delays.push((digitCount - 1 - i) * this.config.digitDelay);
         }
         break;
 
       case 3: // Random
         for (let i = 0; i < digitCount; i++) {
-          delays.push(Math.random() * 300);
+          delays.push(Math.random() * this.config.digitDelay * 3);
         }
         break;
 
@@ -207,6 +208,11 @@ export class SlotMachineElement extends BaseElement {
   animateDigit(digitContainer, targetDigit, delay, startFromBlank = false) {
     const column = digitContainer.column;
 
+    // Get current position
+    const currentTransform = column.style.transform;
+    const currentMatch = currentTransform.match(/translateY\((-?\d+(?:\.\d+)?)px\)/);
+    const currentY = currentMatch ? parseFloat(currentMatch[1]) : 0;
+
     // Calculate target Y position
     // Position 0 = blank space at top
     // Positions 1-10 = digits 0-9
@@ -214,18 +220,32 @@ export class SlotMachineElement extends BaseElement {
       ? 0  // Show blank
       : -(targetDigit + 1) * this.config.digitHeight;  // Show digit
 
-    // If starting from blank, ensure we're at position 0
-    if (startFromBlank) {
-      column.style.transform = `translateY(0px)`;
+    // Calculate minimum rotation to reach target (always downward)
+    // We want to spin down through digits, so we add full rotations if needed
+    let finalY = targetY;
+
+    // If we're not going down enough, add full rotations (11 positions total: blank + 0-9)
+    const totalHeight = 11 * this.config.digitHeight;
+
+    // Always rotate at least one full cycle downward
+    if (targetY >= currentY) {
+      // Target is above current, so add one full rotation
+      finalY = targetY - totalHeight;
+    } else {
+      // Target is below current, add extra rotation for smooth effect
+      finalY = targetY - totalHeight;
     }
 
     const animation = anime({
       targets: column,
-      translateY: targetY,
+      translateY: finalY,
       duration: this.config.spinSpeed,
       delay: delay,
       easing: this.config.easing,
       complete: () => {
+        // Snap to equivalent position without the extra rotations
+        column.style.transform = `translateY(${targetY}px)`;
+
         // Remove from active animations when complete
         const index = this.activeAnimations.indexOf(animation);
         if (index > -1) {

@@ -324,6 +324,11 @@ export class LayoutManager {
             .name('Spin Duration (ms)')
             .onChange(() => element.updateConfig(config));
         }
+        if (config.digitDelay !== undefined) {
+          folder.add(config, 'digitDelay', 0, 500, 10)
+            .name('Delay Between Digits (ms)')
+            .onChange(() => element.updateConfig(config));
+        }
         if (config.easing !== undefined) {
           folder.add(config, 'easing', {
             'Linear': 'linear',
