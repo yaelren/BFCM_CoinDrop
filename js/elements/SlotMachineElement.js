@@ -157,8 +157,7 @@ export class SlotMachineElement extends BaseElement {
       const hasChanged = displayDigit !== digitContainer.currentDigit;
 
       if (hasChanged) {
-        // Pass true for startFromBlank if currently showing blank (null)
-        this.animateDigit(digitContainer, displayDigit, delays[i], digitContainer.currentDigit === null);
+        this.animateDigit(digitContainer, displayDigit, delays[i]);
         digitContainer.currentDigit = displayDigit;
       }
     }
@@ -203,15 +202,9 @@ export class SlotMachineElement extends BaseElement {
    * @param {Object} digitContainer - Container object with column reference
    * @param {number|null} targetDigit - Target digit (0-9) or null for blank
    * @param {number} delay - Animation delay in ms
-   * @param {boolean} startFromBlank - Whether currently showing blank
    */
-  animateDigit(digitContainer, targetDigit, delay, startFromBlank = false) {
+  animateDigit(digitContainer, targetDigit, delay) {
     const column = digitContainer.column;
-
-    // Get current position
-    const currentTransform = column.style.transform;
-    const currentMatch = currentTransform.match(/translateY\((-?\d+(?:\.\d+)?)px\)/);
-    const currentY = currentMatch ? parseFloat(currentMatch[1]) : 0;
 
     // Calculate target Y position
     // Position 0 = blank space at top
@@ -220,32 +213,13 @@ export class SlotMachineElement extends BaseElement {
       ? 0  // Show blank
       : -(targetDigit + 1) * this.config.digitHeight;  // Show digit
 
-    // Calculate minimum rotation to reach target (always downward)
-    // We want to spin down through digits, so we add full rotations if needed
-    let finalY = targetY;
-
-    // If we're not going down enough, add full rotations (11 positions total: blank + 0-9)
-    const totalHeight = 11 * this.config.digitHeight;
-
-    // Always rotate at least one full cycle downward
-    if (targetY >= currentY) {
-      // Target is above current, so add one full rotation
-      finalY = targetY - totalHeight;
-    } else {
-      // Target is below current, add extra rotation for smooth effect
-      finalY = targetY - totalHeight;
-    }
-
     const animation = anime({
       targets: column,
-      translateY: finalY,
+      translateY: targetY,
       duration: this.config.spinSpeed,
       delay: delay,
       easing: this.config.easing,
       complete: () => {
-        // Snap to equivalent position without the extra rotations
-        column.style.transform = `translateY(${targetY}px)`;
-
         // Remove from active animations when complete
         const index = this.activeAnimations.indexOf(animation);
         if (index > -1) {
