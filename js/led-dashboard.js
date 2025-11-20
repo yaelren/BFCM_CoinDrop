@@ -26,17 +26,17 @@ const ELEMENT_CONFIGS = {
   storeName: {
     type: 'ticker',
     x: 215,
-    y: 207,
+    y: 196,
     width: 790,
     height: 110,
     visible: true,
     zIndex: 16,
     background: { color: '#dbe1e4', opacity: 0 },
     config: {
-      scrollSpeed: 63,
-      maxQueue: 10,
-      fontSize: 72,
-      color: '#333333',
+      scrollSpeed: 109,
+      maxQueue: 78,
+      fontSize: 61,
+      color: '#000000',
       separator: '   '
     }
   },
@@ -51,7 +51,6 @@ const ELEMENT_CONFIGS = {
     zIndex: 5,
     background: { color: '#0a0a1a', opacity: 0 },
     config: {
-      mapImage: 'assets/world-map.png',
       projection: 'calibrated',
       calibrationPoints: [
         { name: 'Chicago', lat: 41.8781, lon: -87.6298, x: 388.5, y: 250.5 },
@@ -64,7 +63,9 @@ const ELEMENT_CONFIGS = {
         { name: 'Mumbai', lat: 19.0760, lon: 72.8777, x: 937.5, y: 356.5 }
       ],
       dotSize: 27,
-      dotColor: '#FF0080',
+      dotFillColor: '#FF0080',
+      dotStrokeColor: '#FF0080',
+      dotStrokeWeight: 2,
       dotFadeDuration: 8000,
       showLocationLabel: true,
       locationLabelDuration: 5000,
@@ -125,8 +126,8 @@ const ELEMENT_CONFIGS = {
 
   totalSales: {
     type: 'counter',
-    x: 1714,
-    y: 327,
+    x: 1659,
+    y: 315,
     width: 1022,
     height: 224,
     visible: true,
@@ -134,7 +135,7 @@ const ELEMENT_CONFIGS = {
     background: { color: '#e3e4e5', opacity: 0 },
     config: {
       lerpSpeed: 1,
-      fontSize: 150,
+      fontSize: 133,
       color: '#404040',
       prefix: '',
       suffix: '',
@@ -144,8 +145,8 @@ const ELEMENT_CONFIGS = {
 
   totalOrders: {
     type: 'text',
-    x: 1998,
-    y: 742,
+    x: 2009,
+    y: 746,
     width: 642,
     height: 106,
     visible: true,
@@ -183,7 +184,7 @@ const ELEMENT_CONFIGS = {
   },
 
   onlineGPV: {
-    type: 'slotMachine',
+    type: 'text',
     x: 3408,
     y: 1548,
     width: 542,
@@ -192,14 +193,12 @@ const ELEMENT_CONFIGS = {
     zIndex: 5,
     background: { color: '#0092db', opacity: 0 },
     config: {
-      animationStyle: 1,
-      spinSpeed: 800,
-      easing: 'easeOutExpo',
-      dollarSpins: false,
       fontSize: 72,
       color: '#545454',
-      digitHeight: 60,
-      maxDigits: 9  // Supports up to $999,999,999 (9 digits for large totals)
+      prefix: '$',
+      suffix: '',
+      decimals: 0,
+      lerpSpeed: 1
     }
   }
 };
@@ -278,8 +277,8 @@ class LEDDashboard {
     this.elements.sale = new SlotMachineElement('sale', ELEMENT_CONFIGS.sale);
     this.layoutManager.registerElement(this.elements.sale);
 
-    // Online GPV Slot Machine
-    this.elements.onlineGPV = new SlotMachineElement('onlineGPV', ELEMENT_CONFIGS.onlineGPV);
+    // Online GPV Text
+    this.elements.onlineGPV = new TextElement('onlineGPV', ELEMENT_CONFIGS.onlineGPV);
     this.layoutManager.registerElement(this.elements.onlineGPV);
   }
 
@@ -482,7 +481,7 @@ class LEDDashboard {
     
     // Online GPV
     if (this.elements.onlineGPV) {
-      const localGPV = this.elements.onlineGPV.targetValue || 0;
+      const localGPV = this.elements.onlineGPV.currentValue || 0;
       const apiGPV = totals.gpv.online;
       if (Math.abs(localGPV - apiGPV) > 0.01) {  // Allow for rounding
         console.log(`⚠️ Online GPV drift detected: Local=$${localGPV.toFixed(2)}, API=$${apiGPV.toFixed(2)}`);

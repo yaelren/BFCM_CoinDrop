@@ -285,6 +285,24 @@ export class LayoutManager {
         }
         break;
 
+      case 'text':
+        if (config.fontSize !== undefined) {
+          folder.add(config, 'fontSize', 12, 200, 1)
+            .name('Font Size')
+            .onChange(() => element.updateConfig(config));
+        }
+        if (config.color) {
+          folder.addColor(config, 'color')
+            .name('Text Color')
+            .onChange(() => element.updateConfig(config));
+        }
+        if (config.lerpSpeed !== undefined) {
+          folder.add(config, 'lerpSpeed', 0.1, 5, 0.1)
+            .name('Animation Speed')
+            .onChange(() => element.updateConfig(config));
+        }
+        break;
+
       case 'slotMachine':
         if (config.fontSize !== undefined) {
           folder.add(config, 'fontSize', 12, 200, 1)
@@ -337,16 +355,72 @@ export class LayoutManager {
             .name('Dot Size')
             .onChange(() => element.updateConfig(config));
         }
-        if (config.dotColor) {
-          folder.addColor(config, 'dotColor')
-            .name('Dot Color')
+        
+        // Dot Colors
+        if (config.dotFillColor) {
+          folder.addColor(config, 'dotFillColor')
+            .name('Dot Fill Color')
             .onChange(() => element.updateConfig(config));
         }
+        if (config.dotStrokeColor) {
+          folder.addColor(config, 'dotStrokeColor')
+            .name('Dot Stroke Color')
+            .onChange(() => element.updateConfig(config));
+        }
+        if (config.dotStrokeWeight !== undefined) {
+          folder.add(config, 'dotStrokeWeight', 0, 10, 0.5)
+            .name('Dot Stroke Weight')
+            .onChange(() => element.updateConfig(config));
+        }
+        
+        // Legacy dotColor support (hidden, for backward compatibility)
+        if (config.dotColor && !config.dotFillColor && !config.dotStrokeColor) {
+          folder.addColor(config, 'dotColor')
+            .name('Dot Color (Legacy)')
+            .onChange(() => element.updateConfig(config));
+        }
+        
         if (config.dotFadeDuration !== undefined) {
           folder.add(config, 'dotFadeDuration', 0, 10000, 100)
             .name('Dot Fade (ms, 0=stay)')
             .onChange(() => element.updateConfig(config));
         }
+
+        // Map Calibration Controls
+        const calibrationFolder = folder.addFolder('🎯 Map Calibration');
+
+        const calibrationState = {
+          calibrationMode: false,
+          selectedCity: 'Chicago'
+        };
+
+        calibrationFolder.add(calibrationState, 'calibrationMode')
+          .name('Enable Calibration Mode')
+          .onChange((enabled) => {
+            element.setCalibrationMode(enabled);
+          });
+
+        // Create city selection dropdown with all available cities
+        const cityChoices = {};
+        element.calibrationCities.forEach(city => {
+          cityChoices[`${city.name} (${city.region})`] = city.name;
+        });
+
+        calibrationFolder.add(calibrationState, 'selectedCity', cityChoices)
+          .name('Select City to Calibrate')
+          .onChange((cityName) => {
+            element.selectCalibrationCity(cityName);
+          });
+
+        calibrationFolder.add({
+          reset: () => element.resetCalibration()
+        }, 'reset')
+          .name('🔄 Reset All Points');
+
+        calibrationFolder.add({
+          generate: () => element.generateCalibrationConfig()
+        }, 'generate')
+          .name('📋 Generate Config');
 
         // Location Label Controls
         const labelFolder = folder.addFolder('Location Label');
@@ -508,6 +582,35 @@ export class LayoutManager {
         if (config.pegFriction !== undefined) {
           folder.add(config, 'pegFriction', 0, 1, 0.05)
             .name('Peg Friction')
+            .onChange(() => element.updateConfig(config));
+        }
+
+        // Particle Drop Shadow
+        const shadowFolder = folder.addFolder('Particle Shadow');
+
+        if (config.particleShadowBlur !== undefined) {
+          shadowFolder.add(config, 'particleShadowBlur', 0, 300, 1)
+            .name('Blur / Size')
+            .onChange(() => element.updateConfig(config));
+        }
+        if (config.particleShadowColor !== undefined) {
+          shadowFolder.addColor(config, 'particleShadowColor')
+            .name('Color')
+            .onChange(() => element.updateConfig(config));
+        }
+        if (config.particleShadowOpacity !== undefined) {
+          shadowFolder.add(config, 'particleShadowOpacity', 0, 1, 0.01)
+            .name('Opacity')
+            .onChange(() => element.updateConfig(config));
+        }
+        if (config.particleShadowOffsetX !== undefined) {
+          shadowFolder.add(config, 'particleShadowOffsetX', -100, 100, 1)
+            .name('Offset X')
+            .onChange(() => element.updateConfig(config));
+        }
+        if (config.particleShadowOffsetY !== undefined) {
+          shadowFolder.add(config, 'particleShadowOffsetY', -100, 100, 1)
+            .name('Offset Y')
             .onChange(() => element.updateConfig(config));
         }
         break;
