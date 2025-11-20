@@ -51,22 +51,15 @@ const ELEMENT_CONFIGS = {
     zIndex: 5,
     background: { color: '#0a0a1a', opacity: 0 },
     config: {
-      projection: 'calibrated',
-      calibrationPoints: [
-        { name: 'Chicago', lat: 41.8781, lon: -87.6298, x: 0.5450, y: 0.4691 },
-        { name: 'Los Angeles', lat: 34.0522, lon: -118.2437, x: 0.3542, y: 0.5347 },
-        { name: 'London', lat: 51.5074, lon: -0.1278, x: 0.9488, y: 0.4148 },
-        { name: 'Rome', lat: 41.9028, lon: 12.4964, x: 1.0035, y: 0.4860 },
-        { name: 'Tokyo', lat: 35.6762, lon: 139.6503, x: 1.5968, y: 0.7593 },
-        { name: 'Cairo', lat: 30.0444, lon: 31.2357, x: 1.0751, y: 0.5871 },
-        { name: 'São Paulo', lat: -23.5505, lon: -46.6333, x: 0.7035, y: 1.0084 },
-        { name: 'Mumbai', lat: 19.0760, lon: 72.8777, x: 1.3150, y: 0.6676 }
-      ],
-      dotSize: 27,
-      dotFillColor: '#FF0080',
-      dotStrokeColor: '#FF0080',
-      dotStrokeWeight: 2,
-      dotFadeDuration: 8000,
+      projection: 'equirectangular',  // Use standard equirectangular projection
+      // Calibration disabled - needs to be redone for your specific map image
+      // To recalibrate: enable "Calibration Mode" in GUI and click cities on the map
+      calibrationPoints: null,
+      dotSize: 32,
+      dotFillColor: '#f4dac7',
+      dotStrokeColor: '#ef7e6e',
+      dotStrokeWeight: 2.5,
+      dotFadeDuration: 4700,
       showLocationLabel: true,
       locationLabelDuration: 5000,
       locationLabelFontSize: 36,
@@ -96,23 +89,31 @@ const ELEMENT_CONFIGS = {
       maxParticles: 100,
       dropWidth: 520,
       gravity: 0.4,
-      boundaryRadius: 1090,
+      boundaryRadius: 1130,
       boundaryCenterY: -330,
       tunnelWidth: 750,
       backgroundColor: '#d6d6d6',
       backgroundOpacity: 0,
       // Peg positioning
       pegOffsetX: 0,
-      pegOffsetY: 0,
+      pegOffsetY: -73,
+      // Peg spacing (1.0 = default, <1.0 = closer together, >1.0 = further apart)
+      pegSpacingX: 0.85,
+      pegSpacingY: 0.85,
       // Removed pegs configuration (row: [columns])
       // Example: { 0: [5, 10], 1: [3] } removes pegs at column 5 & 10 in row 0, column 3 in row 1
-      removedPegs: {},
+      removedPegs: {
+        5: [9, 10, 11, 12, 13, 14],
+        7: [11, 12, 13]
+      },
+      // Peg selection mode (enable to click pegs to remove them)
+      pegSelectionMode: false,
       // Particle physics settings
       particleRestitution: 0.45,
       particleFriction: 0.3,
       particleDensity: 1,
       particleFrictionAir: 0.01,
-      coinColliderRatio: 0.75,
+      coinColliderRatio: 0.8,
       // Peg physics settings
       pegRestitution: 0.8,
       pegFriction: 0,
@@ -185,7 +186,8 @@ const ELEMENT_CONFIGS = {
       fontSize: 120,
       color: '#4f4f4f',
       digitHeight: 140,
-      maxDigits: 5  // Fixed 5-digit display (supports up to $99,999)
+      maxDigits: 5,
+      digitDelay: 100
     }
   },
 

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slot Machine Test - Fixed Digit Animation</title>
+    <style>
+        @font-face {
+            font-family: 'PPSupplyMono';
+            src: url('assets/font/PPSupplyMono-Variable.woff2') format('woff2');
+            font-weight: 1 999;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'PPSupplyMono', monospace;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 2rem;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 3rem;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #a0a0a0;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .display-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        #slotMachineContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.9rem;
+            color: #a0a0a0;
+        }
+
+        input[type="number"] {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            padding: 0.75rem;
+            color: white;
+            font-family: 'PPSupplyMono', monospace;
+            font-size: 1rem;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        button {
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            border: none;
+            border-radius: 5px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            font-family: 'PPSupplyMono', monospace;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+
+        .test-buttons button {
+            font-size: 0.85rem;
+            padding: 0.5rem;
+        }
+
+        .info {
+            background: rgba(79, 172, 254, 0.1);
+            border: 1px solid rgba(79, 172, 254, 0.3);
+            border-radius: 5px;
+            padding: 1rem;
+            margin-top: 2rem;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .info strong {
+            color: #4facfe;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎰 Slot Machine Animation Test</h1>
+        <p class="subtitle">Fixed 10-Digit Display with Blank Spaces</p>
+
+        <div class="display-container">
+            <div id="slotMachineContainer"></div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="valueInput">Enter Value:</label>
+                <input type="number" id="valueInput" value="123" min="0" max="99999">
+            </div>
+            <div class="control-group">
+                <label>&nbsp;</label>
+                <button onclick="updateValue()">Update Display</button>
+            </div>
+        </div>
+
+        <div class="test-buttons">
+            <button onclick="testValue(5)">$5</button>
+            <button onclick="testValue(99)">$99</button>
+            <button onclick="testValue(999)">$999</button>
+            <button onclick="testValue(1234)">$1,234</button>
+            <button onclick="testValue(12345)">$12,345</button>
+            <button onclick="testValue(99999)">$99,999</button>
+        </div>
+
+        <div class="info">
+            <strong>How it works:</strong><br>
+            • Always displays 5 fixed digit positions with comma<br>
+            • Unused left positions show blank spaces (not zeros)<br>
+            • Numbers align to the right<br>
+            • Each digit animates independently (slot machine effect)<br>
+            • No DOM creation/destruction - smooth animations always<br>
+            • Supports values up to $99,999
+        </div>
+    </div>
+
+    <!-- Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+
+    <!-- Module Scripts -->
+    <script type="module">
+        import { SlotMachineElement } from './js/elements/SlotMachineElement.js';
+
+        // Create slot machine element
+        const slotMachine = new SlotMachineElement('testSlot', {
+            animationStyle: 3,  // Random animation
+            spinSpeed: 800,
+            easing: 'easeOutExpo',
+            fontSize: 72,
+            color: '#FFFFFF',
+            digitHeight: 80,
+            maxDigits: 5
+        });
+
+        // Get container and mount element
+        const container = document.getElementById('slotMachineContainer');
+        slotMachine.mount(container);
+
+        // Set initial value
+        slotMachine.updateData(123);
+
+        // Make functions available globally
+        window.testSlotMachine = slotMachine;
+        window.updateValue = function() {
+            const input = document.getElementById('valueInput');
+            const value = parseInt(input.value) || 0;
+            slotMachine.updateData(Math.min(value, 99999));
+        };
+
+        window.testValue = function(value) {
+            document.getElementById('valueInput').value = value;
+            slotMachine.updateData(value);
+        };
+    </script>
+</body>
+</html>

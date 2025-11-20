@@ -65,6 +65,20 @@ body {
     -webkit-backface-visibility: hidden;
 }
 
+/* Glass overlay - placed between text elements and plinko coins */
+.led-glass-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    z-index: 50;
+    pointer-events: none;
+    /* Note: transform creates new stacking context - removed to maintain z-index hierarchy */
+}
+
 /* Update fallback for aspect-ratio constrained viewports */
 @media (min-aspect-ratio: 4640/1760) {
     .led-dashboard {
@@ -82,13 +96,25 @@ body {
     }
 }
 
-/* Dashboard elements are positioned absolutely by LayoutManager */
+/* Dashboard elements are positioned absolutely by LayoutManager
+   Rendering order (z-index):
+   - Background video: -1 (lowest)
+   - Text elements (sales, orders): 5
+   - Glass overlay: 50 (above text, below coins)
+   - Plinko coins: 100 (highest, above glass)
+
+   Note: Avoid transform properties that create new stacking contexts
+*/
 .dashboard-element {
     box-sizing: border-box;
+    /* Ensure proper z-index stacking */
+    position: relative;
 }
 
 .dashboard-element canvas {
     display: block;
     width: 100%;
     height: 100%;
+    /* Prevent canvas from creating new stacking context */
+    position: relative;
 }

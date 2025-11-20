@@ -40,10 +40,15 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
     // Peg positioning offsets
     pegOffsetX: externalConfig.pegOffsetX ?? 0,
     pegOffsetY: externalConfig.pegOffsetY ?? 0,
+    // Peg spacing multipliers (1.0 = default, <1.0 = closer, >1.0 = further apart)
+    pegSpacingX: externalConfig.pegSpacingX ?? 1.0,
+    pegSpacingY: externalConfig.pegSpacingY ?? 1.0,
     // Peg removal configuration
     // Format: { rowIndex: [colIndex1, colIndex2, ...] }
     // Example: { 0: [5, 10], 1: [3] } removes pegs at column 5 and 10 in row 0, column 3 in row 1
     removedPegs: externalConfig.removedPegs ?? {},
+    // Peg selection mode for interactive removal
+    pegSelectionMode: externalConfig.pegSelectionMode ?? false,
     // Visibility controls
     showBoundaries: externalConfig.showBoundaries ?? true,
     showPegs: externalConfig.showPegs ?? true,
@@ -145,7 +150,7 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
 
   // Plinko peg class
   class Plinko {
-    constructor(x, y, r) {
+    constructor(x, y, r, row, col) {
       const config = getConfig();
       const options = {
         restitution: config.pegRestitution,
@@ -155,16 +160,44 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
       this.body = Bodies.circle(x, y, r, options);
       this.body.label = "plinko";
       this.r = r;
+      this.row = row;
+      this.col = col;
       World.add(world, this.body);
     }
 
     show() {
-      p.noStroke();
-      p.fill(127);
+      const config = getConfig();
       const pos = this.body.position;
+
+      // Check if in selection mode
+      if (config.pegSelectionMode) {
+        // Highlight peg on hover
+        const d = p.dist(p.mouseX, p.mouseY, pos.x, pos.y);
+        if (d < this.r * 2) {
+          p.fill(255, 200, 0, 150); // Yellow highlight
+          p.stroke(255, 200, 0);
+          p.strokeWeight(2);
+        } else {
+          p.noStroke();
+          p.fill(127);
+        }
+      } else {
+        p.noStroke();
+        p.fill(127);
+      }
+
       p.push();
       p.translate(pos.x, pos.y);
       p.ellipse(0, 0, this.r * 2);
+
+      // Show row/col labels in selection mode
+      if (config.pegSelectionMode) {
+        p.fill(255);
+        p.textAlign(p.CENTER, p.CENTER);
+        p.textSize(8);
+        p.text(`${this.row},${this.col}`, 0, 0);
+      }
+
       p.pop();
     }
   }
@@ -202,17 +235,23 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
   // Create plinko pegs
   function createPlinkos() {
     const config = getConfig();
-    const spacing = p.width / config.cols;
+    const baseSpacing = p.width / config.cols;
+
+    // Apply spacing multipliers
+    const spacingX = baseSpacing * config.pegSpacingX;
+    const spacingY = baseSpacing * config.pegSpacingY;
+
     const centerX = p.width / 2;
     const centerY = (p.height / 2) + (config.boundaryCenterY * scaleFactor);
     const radius = config.boundaryRadius * scaleFactor;
 
-    // Calculate starting Y position at the top of the circle
-    const startY = centerY - radius;
-
     // Apply peg offsets (scaled to reference dimensions)
     const pegOffsetX = config.pegOffsetX * scaleFactor;
     const pegOffsetY = config.pegOffsetY * scaleFactor;
+
+    // Calculate starting Y position at the top of the circle, accounting for offset
+    // This ensures the peg grid starts inside the boundary even with offsets
+    const startY = centerY - radius + Math.max(0, -pegOffsetY);
 
     for (let j = 0; j < config.rows; j++) {
       for (let i = 0; i < config.cols + 1; i++) {
@@ -222,27 +261,27 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
           continue; // Skip this peg
         }
 
-        let x = i * spacing;
+        let x = i * spacingX;
         if (j % 2 === 0) {
-          x += spacing / 2;
+          x += spacingX / 2;
         }
-        const y = startY + j * spacing;
+        const y = startY + j * spacingY;
 
         // Apply offsets to peg position
         const offsetX = x + pegOffsetX;
         const offsetY = y + pegOffsetY;
 
         if (config.boundaryRadius <= 0) {
-          plinkos.push(new Plinko(offsetX, offsetY, config.pegSize * scaleFactor));
+          plinkos.push(new Plinko(offsetX, offsetY, config.pegSize * scaleFactor, j, i));
         } else {
           const dx = offsetX - centerX;
           const dy = offsetY - centerY;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
           // Calculate clearance: particle size + peg size + safety margin (all scaled)
-          const minClearance = (config.particleSize * scaleFactor) + (12 *scaleFactor);
+          const minClearance = (config.particleSize * scaleFactor) + (config.pegSize * scaleFactor) + (40 * scaleFactor);
           if (distance < radius - minClearance) {
-            plinkos.push(new Plinko(offsetX, offsetY, config.pegSize * scaleFactor));
+            plinkos.push(new Plinko(offsetX, offsetY, config.pegSize * scaleFactor, j, i));
           }
         }
       }
@@ -472,7 +511,7 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
         const centerX = p.width / 2;
         const centerY = (p.height / 2) + (config.boundaryCenterY * scaleFactor);
         const radius = config.boundaryRadius * scaleFactor;
-        const minClearance = (config.particleSize * scaleFactor) + (12 *scaleFactor);
+        const minClearance = (config.particleSize * scaleFactor) + (config.pegSize * scaleFactor) + (40 * scaleFactor);
         const clearanceRadius = radius - minClearance;
 
         p.push();
@@ -493,12 +532,63 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
 
     windowResized: () => {
       p.resizeCanvas(container.offsetWidth, container.offsetHeight);
-      
+
       // Recalculate scale factor on resize
       scaleFactor = p.width / REFERENCE_WIDTH;
       console.log(`Plinko resized - new scale factor: ${scaleFactor.toFixed(4)}`);
-      
+
       regenerate();
+    },
+
+    mousePressed: () => {
+      const config = getConfig();
+
+      // Only handle clicks in selection mode
+      if (!config.pegSelectionMode) return;
+
+      // Check if we clicked on a peg
+      for (let plinko of plinkos) {
+        const pos = plinko.body.position;
+        const d = p.dist(p.mouseX, p.mouseY, pos.x, pos.y);
+
+        if (d < plinko.r * 2) {
+          // Toggle this peg in removedPegs
+          const row = plinko.row;
+          const col = plinko.col;
+
+          // Create a copy of removedPegs to modify
+          const newRemovedPegs = { ...externalConfig.removedPegs };
+
+          if (!newRemovedPegs[row]) {
+            newRemovedPegs[row] = [];
+          } else {
+            newRemovedPegs[row] = [...newRemovedPegs[row]];
+          }
+
+          const colIndex = newRemovedPegs[row].indexOf(col);
+          if (colIndex > -1) {
+            // Peg is marked for removal, restore it
+            newRemovedPegs[row].splice(colIndex, 1);
+            if (newRemovedPegs[row].length === 0) {
+              delete newRemovedPegs[row];
+            }
+            console.log(`✅ Restored peg at row ${row}, col ${col}`);
+          } else {
+            // Add peg to removal list
+            newRemovedPegs[row].push(col);
+            console.log(`❌ Marked peg for removal: row ${row}, col ${col}`);
+          }
+
+          // Update external config and regenerate
+          externalConfig.removedPegs = newRemovedPegs;
+          regenerate();
+
+          // Log current removed pegs config
+          console.log('Current removedPegs config:', JSON.stringify(newRemovedPegs, null, 2));
+
+          break; // Only handle one peg click at a time
+        }
+      }
     },
 
     // API for external control

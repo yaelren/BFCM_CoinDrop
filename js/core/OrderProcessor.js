@@ -204,6 +204,8 @@ export class OrderProcessor {
    */
   async updateStoreName(businessName) {
     if (!this.dashboard.elements.storeName) return;
+    // Skip adding store name if it's N/A
+    if (businessName === 'N/A') return;
     this.dashboard.elements.storeName.addName(businessName);
   }
 

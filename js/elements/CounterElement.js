@@ -54,7 +54,7 @@ export class CounterElement extends BaseElement {
     this.displayElement.style.color = this.config.color;
     this.displayElement.style.textAlign = 'right';
     this.displayElement.style.width = '100%';
-    this.displayElement.style.fontWeight = '250';
+    this.displayElement.style.fontWeight = '300';
   }
 
   /**

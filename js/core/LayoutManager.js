@@ -514,6 +514,23 @@ export class LayoutManager {
           .name('Peg Offset Y')
           .onChange(() => element.updateConfig(config));
 
+        // Peg Spacing Controls
+        if (config.pegSpacingX === undefined) config.pegSpacingX = 1.0;
+        folder.add(config, 'pegSpacingX', 0.3, 2.0, 0.05)
+          .name('Column Spacing')
+          .onChange(() => element.updateConfig(config));
+
+        if (config.pegSpacingY === undefined) config.pegSpacingY = 1.0;
+        folder.add(config, 'pegSpacingY', 0.3, 2.0, 0.05)
+          .name('Row Spacing')
+          .onChange(() => element.updateConfig(config));
+
+        // Peg Selection Mode
+        if (config.pegSelectionMode === undefined) config.pegSelectionMode = false;
+        folder.add(config, 'pegSelectionMode')
+          .name('🎯 Peg Selection Mode')
+          .onChange(() => element.updateConfig(config));
+
         // Background
         if (config.backgroundColor !== undefined) {
           folder.addColor(config, 'backgroundColor')

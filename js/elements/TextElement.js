@@ -51,7 +51,7 @@ export class TextElement extends BaseElement {
     this.displayElement.style.color = this.config.color;
     this.displayElement.style.textAlign = 'center';
     this.displayElement.style.width = '100%';
-    this.displayElement.style.fontWeight = '250';
+    this.displayElement.style.fontWeight = '300';
   }
 
   /**

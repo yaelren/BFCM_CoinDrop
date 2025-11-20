@@ -48,7 +48,7 @@ export class TickerElement extends BaseElement {
       bottom: 0;
       font-size: ${toResponsiveUnit(this.config.fontSize)};
       color: ${this.config.color};
-      font-weight: 250;
+      font-weight: 300;
     `;
 
     container.appendChild(this.tickerContent);
