@@ -268,6 +268,9 @@ export class MapElement extends BaseElement {
   /**
    * Calculate calibration parameters from calibration points
    * Now uses RELATIVE coordinates (0-1) for resolution independence
+   *
+   * For spherical/curved maps, we use multiple calibration points to
+   * create a more accurate transformation via interpolation
    */
   calculateCalibration() {
     if (!this.config.calibrationPoints || this.config.calibrationPoints.length < 2) {
@@ -275,11 +278,11 @@ export class MapElement extends BaseElement {
     }
 
     const points = this.config.calibrationPoints;
+
+    // Simple linear calibration (fallback for 2 points)
     const p1 = points[0];
     const p2 = points[1];
 
-    // Calculate linear transformation parameters using RELATIVE coordinates
-    // x and y are now in 0-1 range, so they work at any resolution
     const lonScale = (p2.x - p1.x) / (p2.lon - p1.lon);
     const latScale = (p2.y - p1.y) / (p2.lat - p1.lat);
     const lonOffset = p1.x - p1.lon * lonScale;
@@ -290,7 +293,11 @@ export class MapElement extends BaseElement {
       lonScale,
       latScale,
       lonOffset,
-      latOffset
+      latOffset,
+      // Store all calibration points for advanced interpolation
+      points: points,
+      // Enable spherical interpolation if we have 3+ points
+      useSphericalInterpolation: points.length >= 3
     };
   }
 
@@ -352,24 +359,80 @@ export class MapElement extends BaseElement {
    * Calibration-based projection
    * Uses calibration points with RELATIVE coordinates (0-1)
    * Works at any resolution without needing image dimensions
+   *
+   * For spherical maps with 3+ calibration points, uses weighted interpolation
+   * to account for non-linear distortion
    */
   latLongToCalibratedXY(lat, lon) {
     if (!this.calibration) {
       return this.latLongToEquirectangularXY(lat, lon, this.container.offsetWidth, this.container.offsetHeight);
     }
 
-    // Calculate RELATIVE position (0-1 range)
-    const relativeX = lon * this.calibration.lonScale + this.calibration.lonOffset;
-    const relativeY = lat * this.calibration.latScale + this.calibration.latOffset;
-
-    // Scale to current container size
     const containerWidth = this.container.offsetWidth;
     const containerHeight = this.container.offsetHeight;
 
-    const x = relativeX * containerWidth;
-    const y = relativeY * containerHeight;
+    // Use spherical interpolation if we have 3+ calibration points
+    if (this.calibration.useSphericalInterpolation) {
+      const { x: relativeX, y: relativeY } = this.interpolateSpherical(lat, lon);
+      return {
+        x: relativeX * containerWidth,
+        y: relativeY * containerHeight
+      };
+    }
 
-    return { x, y };
+    // Simple linear calibration (for 2 points)
+    const relativeX = lon * this.calibration.lonScale + this.calibration.lonOffset;
+    const relativeY = lat * this.calibration.latScale + this.calibration.latOffset;
+
+    return {
+      x: relativeX * containerWidth,
+      y: relativeY * containerHeight
+    };
+  }
+
+  /**
+   * Spherical interpolation using Inverse Distance Weighting (IDW)
+   * Uses all calibration points to handle non-linear distortion
+   */
+  interpolateSpherical(targetLat, targetLon) {
+    const points = this.calibration.points;
+
+    // Find the 4 nearest calibration points for better accuracy
+    const distances = points.map(p => {
+      const dLat = targetLat - p.lat;
+      const dLon = targetLon - p.lon;
+      // Use geographic distance (approximation)
+      const dist = Math.sqrt(dLat * dLat + dLon * dLon);
+      return { point: p, distance: dist };
+    }).sort((a, b) => a.distance - b.distance);
+
+    // Use up to 4 nearest points for interpolation
+    const nearestPoints = distances.slice(0, Math.min(4, distances.length));
+
+    // Check if we're very close to a calibration point
+    if (nearestPoints[0].distance < 0.01) {
+      return { x: nearestPoints[0].point.x, y: nearestPoints[0].point.y };
+    }
+
+    // Inverse Distance Weighting (IDW) interpolation
+    // Power parameter: higher = more weight to closer points
+    const power = 2;
+    let totalWeight = 0;
+    let weightedX = 0;
+    let weightedY = 0;
+
+    nearestPoints.forEach(({ point, distance }) => {
+      // Avoid division by zero
+      const weight = 1 / Math.pow(distance + 0.0001, power);
+      totalWeight += weight;
+      weightedX += point.x * weight;
+      weightedY += point.y * weight;
+    });
+
+    return {
+      x: weightedX / totalWeight,
+      y: weightedY / totalWeight
+    };
   }
 
   /**
@@ -439,18 +502,43 @@ export class MapElement extends BaseElement {
   updateLocationLabel(locationData) {
     if (!this.locationLabel) return;
 
-    // Format location string
+    // Maximum character limit for location text (configurable)
+    const maxLength = this.config.locationLabelMaxLength || 30;
+
+    // Format location string with smart truncation
     let locationText = '';
+    
+    // First, try full format: City, State, Country OR City, Country
     if (locationData.city && locationData.country) {
       if (locationData.state) {
         locationText = `${locationData.city}, ${locationData.state}, ${locationData.country}`;
       } else {
         locationText = `${locationData.city}, ${locationData.country}`;
       }
+      
+      // If too long, remove city and try just country
+      if (locationText.length > maxLength) {
+        locationText = locationData.country;
+        
+        // If country alone is still too long, truncate it
+        if (locationText.length > maxLength) {
+          locationText = locationText.substring(0, maxLength - 1) + '…';
+        }
+      }
     } else if (locationData.country) {
       locationText = locationData.country;
+      
+      // If country alone is too long, truncate it
+      if (locationText.length > maxLength) {
+        locationText = locationText.substring(0, maxLength - 1) + '…';
+      }
     } else if (locationData.displayName) {
       locationText = locationData.displayName;
+      
+      // Truncate displayName if needed
+      if (locationText.length > maxLength) {
+        locationText = locationText.substring(0, maxLength - 1) + '…';
+      }
     } else {
       locationText = `${locationData.lat.toFixed(2)}°, ${locationData.lon.toFixed(2)}°`;
     }

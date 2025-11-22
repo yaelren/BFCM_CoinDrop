@@ -51,10 +51,21 @@ const ELEMENT_CONFIGS = {
     zIndex: 5,
     background: { color: '#0a0a1a', opacity: 0 },
     config: {
-      projection: 'equirectangular',  // Use standard equirectangular projection
-      // Calibration disabled - needs to be redone for your specific map image
-      // To recalibrate: enable "Calibration Mode" in GUI and click cities on the map
-      calibrationPoints: null,
+      projection: 'calibrated',  // Using calibrated projection with 12 reference cities
+      calibrationPoints: [
+        { name: 'New York', lat: 40.7128, lon: -74.006, x: 0.2817, y: 0.3123 },
+        { name: 'Los Angeles', lat: 34.0522, lon: -118.2437, x: 0.1388, y: 0.3557 },
+        { name: 'Chicago', lat: 41.8781, lon: -87.6298, x: 0.2449, y: 0.2892 },
+        { name: 'London', lat: 51.5074, lon: -0.1278, x: 0.5003, y: 0.2574 },
+        { name: 'Paris', lat: 48.8566, lon: 2.3522, x: 0.496, y: 0.3297 },
+        { name: 'Rome', lat: 41.9028, lon: 12.4964, x: 0.5198, y: 0.3355 },
+        { name: 'Berlin', lat: 52.52, lon: 13.405, x: 0.5328, y: 0.2834 },
+        { name: 'Tokyo', lat: 35.6762, lon: 139.6503, x: 0.812, y: 0.4626 },
+        { name: 'Sydney', lat: -33.8688, lon: 151.2093, x: 0.8726, y: 0.6534 },
+        { name: 'Mumbai', lat: 19.076, lon: 72.8777, x: 0.6799, y: 0.4482 },
+        { name: 'São Paulo', lat: -23.5505, lon: -46.6333, x: 0.325, y: 0.6245 },
+        { name: 'Cairo', lat: 30.0444, lon: 31.2357, x: 0.5219, y: 0.3933 }
+      ],
       dotSize: 32,
       dotFillColor: '#f4dac7',
       dotStrokeColor: '#ef7e6e',
@@ -65,7 +76,8 @@ const ELEMENT_CONFIGS = {
       locationLabelFontSize: 36,
       locationLabelColor: '#333333',
       locationLabelPosition: 'bottom',
-      locationLabelOffset: 0
+      locationLabelOffset: 0,
+      locationLabelMaxLength: 20  // Max characters before truncating (testing - adjust based on visual fit) (removes city if too long, then truncates country)
     }
   },
 
@@ -143,7 +155,7 @@ const ELEMENT_CONFIGS = {
     config: {
       lerpSpeed: 1,
       fontSize: 133,
-      color: '#404040',
+      color: '#000000',
       prefix: '',
       suffix: '',
       decimals: 0
@@ -161,7 +173,7 @@ const ELEMENT_CONFIGS = {
     background: { color: '#e2e4e5', opacity: 0 },
     config: {
       fontSize: 72,
-      color: '#545454',
+      color: '#000000',
       prefix: '',
       suffix: '',
       decimals: 0,
@@ -184,8 +196,8 @@ const ELEMENT_CONFIGS = {
       easing: 'easeOutExpo',
       dollarSpins: true,
       fontSize: 120,
-      color: '#4f4f4f',
-      digitHeight: 140,
+      color: '#000000',
+      digitHeight: 200,
       maxDigits: 5,
       digitDelay: 100
     }
@@ -202,7 +214,7 @@ const ELEMENT_CONFIGS = {
     background: { color: '#0092db', opacity: 0 },
     config: {
       fontSize: 72,
-      color: '#545454',
+      color: '#000000',
       prefix: '$',
       suffix: '',
       decimals: 0,
@@ -318,12 +330,12 @@ class LEDDashboard {
     const stores = ['Nike Store', 'Apple Store', 'Amazon', 'Best Buy', 'Target', 'Walmart', 'Costco'];
     const randomStore = stores[Math.floor(Math.random() * stores.length)];
 
-    // Real world locations with city/state/country
+    // Real world locations with city/state/country - INCLUDING LONG NAMES FOR TESTING
     const locations = [
-      { lat: 40.7128, lon: -74.0060, city: 'New York', state: 'NY', country: 'USA' },
-      { lat: 34.0522, lon: -118.2437, city: 'Los Angeles', state: 'CA', country: 'USA' },
-      { lat: 41.8781, lon: -87.6298, city: 'Chicago', state: 'IL', country: 'USA' },
-      { lat: 51.5074, lon: -0.1278, city: 'London', country: 'UK' },
+      { lat: 40.7128, lon: -74.0060, city: 'New York', state: 'NY', country: 'United States of America' },
+      { lat: 34.0522, lon: -118.2437, city: 'Los Angeles', state: 'CA', country: 'United States of America' },
+      { lat: 41.8781, lon: -87.6298, city: 'Chicago', state: 'IL', country: 'United States of America' },
+      { lat: 51.5074, lon: -0.1278, city: 'London', country: 'United Kingdom' },
       { lat: 48.8566, lon: 2.3522, city: 'Paris', country: 'France' },
       { lat: 41.9028, lon: 12.4964, city: 'Rome', country: 'Italy' },
       { lat: 52.5200, lon: 13.4050, city: 'Berlin', country: 'Germany' },
@@ -332,9 +344,12 @@ class LEDDashboard {
       { lat: 19.0760, lon: 72.8777, city: 'Mumbai', country: 'India' },
       { lat: -23.5505, lon: -46.6333, city: 'São Paulo', country: 'Brazil' },
       { lat: 30.0444, lon: 31.2357, city: 'Cairo', country: 'Egypt' },
-      { lat: 55.7558, lon: 37.6173, city: 'Moscow', country: 'Russia' },
-      { lat: 39.9042, lon: 116.4074, city: 'Beijing', country: 'China' },
-      { lat: 25.2048, lon: 55.2708, city: 'Dubai', country: 'UAE' }
+      { lat: 55.7558, lon: 37.6173, city: 'Moscow', country: 'Russian Federation' },
+      { lat: 39.9042, lon: 116.4074, city: 'Beijing', country: 'People\'s Republic of China' },
+      { lat: 25.2048, lon: 55.2708, city: 'Dubai', country: 'United Arab Emirates' },
+      // EXTRA LONG TEST CASES
+      { lat: 53.4808, lon: -2.2426, city: 'Llanfairpwllgwyngyllgogerychwyrndrobwllllantysiliogogogoch', country: 'United Kingdom' },
+      { lat: -22.9068, lon: -43.1729, city: 'Rio de Janeiro', country: 'Federative Republic of Brazil' }
     ];
 
     const randomLocation = locations[Math.floor(Math.random() * locations.length)];

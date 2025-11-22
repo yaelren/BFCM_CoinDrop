@@ -14,6 +14,8 @@ export class LayoutManager {
     this.positionGUI = null;
     this.controlsGUI = null;
     this.guiFolders = new Map();
+    this.debugModeEnabled = false;
+    this.guiVisible = true;
 
     if (!this.container) {
       throw new Error(`Container "${containerSelector}" not found`);
@@ -22,6 +24,10 @@ export class LayoutManager {
     // Bind resize handler
     this.handleResize = this.handleResize.bind(this);
     window.addEventListener('resize', this.handleResize);
+
+    // Bind keyboard shortcut handler for GUI visibility toggle
+    this.handleKeyPress = this.handleKeyPress.bind(this);
+    window.addEventListener('keydown', this.handleKeyPress);
   }
 
   /**
@@ -98,6 +104,39 @@ export class LayoutManager {
    */
   handleResize() {
     this.updateAllPositions();
+  }
+
+  /**
+   * Handle keyboard shortcuts
+   */
+  handleKeyPress(event) {
+    // Toggle GUI visibility with 'G' key (case insensitive)
+    if (event.key === 'g' || event.key === 'G') {
+      // Don't trigger if user is typing in an input field
+      if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+        return;
+      }
+      
+      this.guiVisible = !this.guiVisible;
+      this.toggleGUIVisibility(this.guiVisible);
+      
+      console.log(`GUI ${this.guiVisible ? 'shown' : 'hidden'}`);
+    }
+  }
+
+  /**
+   * Toggle GUI visibility
+   */
+  toggleGUIVisibility(visible) {
+    const display = visible ? 'block' : 'none';
+    
+    if (this.positionGUI && this.positionGUI.domElement) {
+      this.positionGUI.domElement.style.display = display;
+    }
+    
+    if (this.controlsGUI && this.controlsGUI.domElement) {
+      this.controlsGUI.domElement.style.display = display;
+    }
   }
 
   /**
@@ -204,19 +243,17 @@ export class LayoutManager {
     // Animation Timing Controls (if order processor provided)
     if (this.orderProcessor) {
       const timingFolder = this.controlsGUI.addFolder('⏱️ Animation Timing');
-      const processorConfig = this.orderProcessor.getConfig();
+      
+      // Directly bind to the processor's config object
+      // lil-gui will modify the values in place
+      timingFolder.add(this.orderProcessor.config, 'minDisplayTime', 1000, 10000, 100)
+        .name('Time Between Orders (ms)');
 
-      timingFolder.add(processorConfig, 'minDisplayTime', 1000, 10000, 100)
-        .name('Time Between Orders (ms)')
-        .onChange(() => this.orderProcessor.updateConfig(processorConfig));
+      timingFolder.add(this.orderProcessor.config, 'saleToPlinkDelay', 0, 2000, 50)
+        .name('Sale → Plinko Delay (ms)');
 
-      timingFolder.add(processorConfig, 'saleToPlinkDelay', 0, 2000, 50)
-        .name('Sale → Plinko Delay (ms)')
-        .onChange(() => this.orderProcessor.updateConfig(processorConfig));
-
-      timingFolder.add(processorConfig, 'plinkoToCountersDelay', 0, 2000, 50)
-        .name('Plinko → Counters Delay (ms)')
-        .onChange(() => this.orderProcessor.updateConfig(processorConfig));
+      timingFolder.add(this.orderProcessor.config, 'plinkoToCountersDelay', 0, 2000, 50)
+        .name('Plinko → Counters Delay (ms)');
 
       timingFolder.open();
     }
@@ -352,6 +389,11 @@ export class LayoutManager {
             .name('$ Symbol Spins')
             .onChange(() => element.updateConfig(config));
         }
+        if (config.digitHeight !== undefined) {
+          folder.add(config, 'digitHeight', 20, 200, 1)
+            .name('Digit Height (crop)')
+            .onChange(() => element.updateConfig(config));
+        }
         break;
 
       case 'map':
@@ -458,6 +500,11 @@ export class LayoutManager {
         if (config.locationLabelDuration !== undefined) {
           labelFolder.add(config, 'locationLabelDuration', 0, 10000, 100)
             .name('Duration (ms, 0=stay)')
+            .onChange(() => element.updateConfig(config));
+        }
+        if (config.locationLabelMaxLength !== undefined) {
+          labelFolder.add(config, 'locationLabelMaxLength', 10, 100, 1)
+            .name('Max Length (chars)')
             .onChange(() => element.updateConfig(config));
         }
         break;
@@ -749,6 +796,7 @@ export class LayoutManager {
    */
   destroy() {
     window.removeEventListener('resize', this.handleResize);
+    window.removeEventListener('keydown', this.handleKeyPress);
     this.elements.forEach(element => element.destroy());
     this.elements.clear();
     if (this.positionGUI) {
