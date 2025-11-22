@@ -15,8 +15,9 @@ export class TickerElement extends BaseElement {
         scrollSpeed: config.scrollSpeed || 50, // pixels per second
         maxQueue: config.maxQueue || 10,
         fontSize: config.fontSize || 32,
-        color: config.color || '#FFFFFF',
+        color: config.color || '#000000',
         separator: config.separator || '   ', // spaces between names
+        textShadow: config.textShadow || null, // Optional text glow effect
         ...config.config
       }
     });
@@ -41,7 +42,9 @@ export class TickerElement extends BaseElement {
 
     this.tickerContent = document.createElement('div');
     this.tickerContent.className = 'ticker-content';
-    this.tickerContent.style.cssText = `
+
+    // Build style string with optional text shadow
+    let styleString = `
       display: inline-block;
       position: absolute;
       left: 0;
@@ -50,6 +53,12 @@ export class TickerElement extends BaseElement {
       color: ${this.config.color};
       font-weight: 300;
     `;
+
+    if (this.config.textShadow) {
+      styleString += `text-shadow: ${this.config.textShadow};`;
+    }
+
+    this.tickerContent.style.cssText = styleString;
 
     container.appendChild(this.tickerContent);
     return container;
@@ -174,6 +183,11 @@ export class TickerElement extends BaseElement {
     if (this.tickerContent) {
       this.tickerContent.style.fontSize = toResponsiveUnit(this.config.fontSize);
       this.tickerContent.style.color = this.config.color;
+
+      // Apply text glow effect if configured
+      if (this.config.textShadow) {
+        this.tickerContent.style.textShadow = this.config.textShadow;
+      }
     }
 
     // Update ticker text if separator changed

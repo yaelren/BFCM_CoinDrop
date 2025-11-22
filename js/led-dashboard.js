@@ -37,7 +37,8 @@ const ELEMENT_CONFIGS = {
       maxQueue: 78,
       fontSize: 61,
       color: '#000000',
-      separator: '   '
+      separator: '   ',
+      textShadow: '0 0 5px rgba(1, 78, 116, 0.5), 0 0 20px rgba(1, 78, 116, 0.5)' // Dark teal glow effect
     }
   },
 
@@ -158,7 +159,8 @@ const ELEMENT_CONFIGS = {
       color: '#000000',
       prefix: '',
       suffix: '',
-      decimals: 0
+      decimals: 0,
+      textShadow: '0 0 5px rgba(1, 78, 116, 0.5), 0 0 20px rgba(1, 78, 116, 0.5)' // Dark teal glow effect
     }
   },
 
@@ -177,7 +179,8 @@ const ELEMENT_CONFIGS = {
       prefix: '',
       suffix: '',
       decimals: 0,
-      lerpSpeed: 1
+      lerpSpeed: 1,
+      textShadow: '0 0 5px rgba(1, 78, 116, 0.5), 0 0 20px rgba(1, 78, 116, 0.5)' // Dark teal glow effect
     }
   },
 
@@ -199,7 +202,8 @@ const ELEMENT_CONFIGS = {
       color: '#000000',
       digitHeight: 200,
       maxDigits: 5,
-      digitDelay: 100
+      digitDelay: 100,
+      textShadow: '0 0 5px rgba(1, 78, 116, 0.5), 0 0 20px rgba(1, 78, 116, 0.5)' // Dark teal glow effect
     }
   },
 
@@ -218,7 +222,8 @@ const ELEMENT_CONFIGS = {
       prefix: '$',
       suffix: '',
       decimals: 0,
-      lerpSpeed: 1
+      lerpSpeed: 1,
+      textShadow: '0 0 5px rgba(1, 78, 116, 0.5), 0 0 20px rgba(1, 78, 116, 0.5)' // Dark teal glow effect
     }
   }
 };

@@ -14,10 +14,11 @@ export class CounterElement extends BaseElement {
       config: {
         lerpSpeed: config.lerpSpeed || 1.0,
         fontSize: config.fontSize || 48,
-        color: config.color || '#FFFFFF',
+        color: config.color || '#000000',
         prefix: config.prefix || '',
         suffix: config.suffix || '',
         decimals: config.decimals || 0,
+        textShadow: config.textShadow || null, // Optional text glow effect
         ...config.config
       }
     });
@@ -55,6 +56,11 @@ export class CounterElement extends BaseElement {
     this.displayElement.style.textAlign = 'right';
     this.displayElement.style.width = '100%';
     this.displayElement.style.fontWeight = '300';
+
+    // Apply text glow effect if configured
+    if (this.config.textShadow) {
+      this.displayElement.style.textShadow = this.config.textShadow;
+    }
   }
 
   /**

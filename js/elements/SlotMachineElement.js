@@ -5,7 +5,7 @@ import { BaseElement } from '../core/BaseElement.js';
  * Supports 3 animation styles: All Together, Sequential, Random
  * Used for Sale and Online GPV
  */
-import { toResponsiveUnit } from '../utils/ResponsiveScale.js';
+import { toResponsiveUnit, toActualPixels } from '../utils/ResponsiveScale.js';
 
 export class SlotMachineElement extends BaseElement {
   constructor(id, config) {
@@ -18,10 +18,11 @@ export class SlotMachineElement extends BaseElement {
         easing: config.easing || 'easeOutExpo',
         dollarSpins: config.dollarSpins !== undefined ? config.dollarSpins : false,
         fontSize: config.fontSize || 48,
-        color: config.color || '#FFFFFF',
-        digitHeight: config.digitHeight || 60,
+        color: config.color || '#000000',
+        digitHeight: config.digitHeight || 200,
         maxDigits: config.maxDigits || 5, // Fixed number of digit positions
         digitDelay: config.digitDelay || 100, // Delay between digits for sequential animation (ms)
+        textShadow: config.textShadow || null, // Optional text glow effect
         ...config.config
       }
     });
@@ -57,6 +58,9 @@ export class SlotMachineElement extends BaseElement {
     this.container.innerHTML = '';
     this.digitContainers = [];
 
+    // Calculate responsive digit height using CSS calc for consistent scaling
+    const responsiveDigitHeight = toResponsiveUnit(this.config.digitHeight);
+
     // Create fixed number of digit positions (left to right in DOM)
     // Position 0 is leftmost (ten-thousands), position 4 is rightmost (ones)
     for (let position = 0; position < this.config.maxDigits; position++) {
@@ -64,7 +68,7 @@ export class SlotMachineElement extends BaseElement {
       digitWrapper.className = 'slot-digit-wrapper';
       digitWrapper.style.cssText = `
         overflow: hidden;
-        height: ${this.config.digitHeight}px;
+        height: ${responsiveDigitHeight};
         display: inline-block;
         position: relative;
         vertical-align: middle;
@@ -83,8 +87,8 @@ export class SlotMachineElement extends BaseElement {
       const blankSpan = document.createElement('span');
       blankSpan.textContent = '';
       blankSpan.style.cssText = `
-        height: ${this.config.digitHeight}px;
-        line-height: ${this.config.digitHeight}px;
+        height: ${responsiveDigitHeight};
+        line-height: ${responsiveDigitHeight};
         display: block;
         text-align: center;
       `;
@@ -94,13 +98,21 @@ export class SlotMachineElement extends BaseElement {
       for (let digit = 0; digit <= 9; digit++) {
         const digitSpan = document.createElement('span');
         digitSpan.textContent = digit;
-        digitSpan.style.cssText = `
-          height: ${this.config.digitHeight}px;
-          line-height: ${this.config.digitHeight}px;
+
+        // Build style string with optional text shadow
+        let digitStyle = `
+          height: ${responsiveDigitHeight};
+          line-height: ${responsiveDigitHeight};
           display: block;
           text-align: center;
           overflow: hidden;
         `;
+
+        if (this.config.textShadow) {
+          digitStyle += `text-shadow: ${this.config.textShadow};`;
+        }
+
+        digitSpan.style.cssText = digitStyle;
         digitColumn.appendChild(digitSpan);
       }
 
@@ -206,12 +218,15 @@ export class SlotMachineElement extends BaseElement {
   animateDigit(digitContainer, targetDigit, delay) {
     const column = digitContainer.column;
 
+    // Calculate current responsive digit height for animation
+    const currentDigitHeight = toActualPixels(this.config.digitHeight);
+
     // Calculate target Y position
     // Position 0 = blank space at top
     // Positions 1-10 = digits 0-9
     const targetY = targetDigit === null
       ? 0  // Show blank
-      : -(targetDigit + 1) * this.config.digitHeight;  // Show digit
+      : -(targetDigit + 1) * currentDigitHeight;  // Show digit
 
     const animation = anime({
       targets: column,
@@ -296,6 +311,10 @@ export class SlotMachineElement extends BaseElement {
    * Update configuration
    */
   updateConfig(newConfig) {
+    // Store old values before updating
+    const oldDigitHeight = this.config.digitHeight;
+    const oldMaxDigits = this.config.maxDigits;
+
     super.updateConfig(newConfig);
 
     if (this.container) {
@@ -304,8 +323,8 @@ export class SlotMachineElement extends BaseElement {
     }
 
     // Recreate fixed digits if digit height or maxDigits changed
-    if ((newConfig.digitHeight && newConfig.digitHeight !== this.config.digitHeight) ||
-        (newConfig.maxDigits && newConfig.maxDigits !== this.config.maxDigits)) {
+    if ((newConfig.digitHeight && newConfig.digitHeight !== oldDigitHeight) ||
+        (newConfig.maxDigits && newConfig.maxDigits !== oldMaxDigits)) {
       this.initialized = false;
       this.createFixedDigits();
       this.setValue(this.currentValue);
@@ -321,6 +340,9 @@ export class SlotMachineElement extends BaseElement {
     if (!this.initialized) {
       this.createFixedDigits();
     }
+
+    // Calculate current responsive digit height
+    const currentDigitHeight = toActualPixels(this.config.digitHeight);
 
     // Get the actual number string WITHOUT padding
     const actualNumberStr = Math.abs(Math.floor(value)).toString();
@@ -348,7 +370,7 @@ export class SlotMachineElement extends BaseElement {
       // Set position directly without animation
       const targetY = displayDigit === null
         ? 0  // Show blank space
-        : -(displayDigit + 1) * this.config.digitHeight;  // Show digit (offset by 1 for blank at top)
+        : -(displayDigit + 1) * currentDigitHeight;  // Show digit (offset by 1 for blank at top)
 
       digitContainer.column.style.transform = `translateY(${targetY}px)`;
     }

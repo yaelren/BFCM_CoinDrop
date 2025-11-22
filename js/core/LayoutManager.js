@@ -274,6 +274,126 @@ export class LayoutManager {
   }
 
   /**
+   * Add text glow controls to a folder
+   * Shared by all text-based elements (ticker, counter, text, slotMachine)
+   */
+  addTextGlowControls(folder, element, config) {
+    const glowFolder = folder.addFolder('✨ Text Glow Effect');
+
+    // Initialize glow state if it doesn't exist
+    if (!config.glowState) {
+      config.glowState = {
+        enabled: !!config.textShadow,
+        innerBlur: 8,
+        outerBlur: 16,
+        innerOpacity: 0.8,
+        outerOpacity: 0.5,
+        glowColor: '#ADD8E6' // Light blue
+      };
+
+      // Parse existing textShadow if present
+      if (config.textShadow) {
+        const match = config.textShadow.match(/0 0 (\d+)px rgba\((\d+), (\d+), (\d+), ([\d.]+)\), 0 0 (\d+)px rgba\(\d+, \d+, \d+, ([\d.]+)\)/);
+        if (match) {
+          config.glowState.innerBlur = parseInt(match[1]);
+          config.glowState.innerOpacity = parseFloat(match[5]);
+          config.glowState.outerBlur = parseInt(match[6]);
+          config.glowState.outerOpacity = parseFloat(match[7]);
+          // Convert RGB to hex
+          const r = parseInt(match[2]).toString(16).padStart(2, '0');
+          const g = parseInt(match[3]).toString(16).padStart(2, '0');
+          const b = parseInt(match[4]).toString(16).padStart(2, '0');
+          config.glowState.glowColor = `#${r}${g}${b}`;
+        }
+      }
+    }
+
+    // Update textShadow based on glow state
+    const updateTextShadow = () => {
+      if (!config.glowState.enabled) {
+        config.textShadow = null;
+      } else {
+        // Convert hex to RGB
+        const hex = config.glowState.glowColor.replace('#', '');
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+
+        config.textShadow = `0 0 ${config.glowState.innerBlur}px rgba(${r}, ${g}, ${b}, ${config.glowState.innerOpacity}), 0 0 ${config.glowState.outerBlur}px rgba(${r}, ${g}, ${b}, ${config.glowState.outerOpacity})`;
+      }
+      element.updateConfig(config);
+    };
+
+    glowFolder.add(config.glowState, 'enabled')
+      .name('Enable Glow')
+      .onChange(updateTextShadow);
+
+    glowFolder.addColor(config.glowState, 'glowColor')
+      .name('Glow Color')
+      .onChange(updateTextShadow);
+
+    glowFolder.add(config.glowState, 'innerBlur', 0, 50, 1)
+      .name('Inner Blur (outline)')
+      .onChange(updateTextShadow);
+
+    glowFolder.add(config.glowState, 'innerOpacity', 0, 1, 0.05)
+      .name('Inner Opacity')
+      .onChange(updateTextShadow);
+
+    glowFolder.add(config.glowState, 'outerBlur', 0, 50, 1)
+      .name('Outer Blur (glow)')
+      .onChange(updateTextShadow);
+
+    glowFolder.add(config.glowState, 'outerOpacity', 0, 1, 0.05)
+      .name('Outer Opacity')
+      .onChange(updateTextShadow);
+
+    // Preset buttons
+    const presets = {
+      'Light Blue Glow': () => {
+        config.glowState.glowColor = '#ADD8E6';
+        config.glowState.innerBlur = 8;
+        config.glowState.outerBlur = 16;
+        config.glowState.innerOpacity = 0.8;
+        config.glowState.outerOpacity = 0.5;
+        config.glowState.enabled = true;
+        updateTextShadow();
+        glowFolder.controllersRecursive().forEach(c => c.updateDisplay());
+      },
+      'Neon Blue': () => {
+        config.glowState.glowColor = '#00FFFF';
+        config.glowState.innerBlur = 5;
+        config.glowState.outerBlur = 20;
+        config.glowState.innerOpacity = 1;
+        config.glowState.outerOpacity = 0.7;
+        config.glowState.enabled = true;
+        updateTextShadow();
+        glowFolder.controllersRecursive().forEach(c => c.updateDisplay());
+      },
+      'Red Glow': () => {
+        config.glowState.glowColor = '#FF0000';
+        config.glowState.innerBlur = 8;
+        config.glowState.outerBlur = 16;
+        config.glowState.innerOpacity = 0.8;
+        config.glowState.outerOpacity = 0.5;
+        config.glowState.enabled = true;
+        updateTextShadow();
+        glowFolder.controllersRecursive().forEach(c => c.updateDisplay());
+      },
+      'Disable Glow': () => {
+        config.glowState.enabled = false;
+        updateTextShadow();
+        glowFolder.controllersRecursive().forEach(c => c.updateDisplay());
+      }
+    };
+
+    glowFolder.add(presets, 'Light Blue Glow').name('Preset: Light Blue');
+    glowFolder.add(presets, 'Neon Blue').name('Preset: Neon Blue');
+    glowFolder.add(presets, 'Red Glow').name('Preset: Red Glow');
+    glowFolder.add(presets, 'Disable Glow').name('Preset: No Glow');
+  }
+
+  /**
    * Add element-specific GUI controls
    * Override this or extend per element type
    */
@@ -302,6 +422,8 @@ export class LayoutManager {
             .name('Max Queue Size')
             .onChange(() => element.updateConfig(config));
         }
+        // Add text glow controls
+        this.addTextGlowControls(folder, element, config);
         break;
 
       case 'counter':
@@ -320,6 +442,8 @@ export class LayoutManager {
             .name('Animation Speed')
             .onChange(() => element.updateConfig(config));
         }
+        // Add text glow controls
+        this.addTextGlowControls(folder, element, config);
         break;
 
       case 'text':
@@ -338,6 +462,8 @@ export class LayoutManager {
             .name('Animation Speed')
             .onChange(() => element.updateConfig(config));
         }
+        // Add text glow controls
+        this.addTextGlowControls(folder, element, config);
         break;
 
       case 'slotMachine':
@@ -394,6 +520,8 @@ export class LayoutManager {
             .name('Digit Height (crop)')
             .onChange(() => element.updateConfig(config));
         }
+        // Add text glow controls
+        this.addTextGlowControls(folder, element, config);
         break;
 
       case 'map':
