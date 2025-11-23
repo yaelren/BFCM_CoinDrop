@@ -75,12 +75,12 @@ export class TotalsPoller {
 
       // Log received totals
       // console.log('📊 Totals API response:', {
-        totalOrders: totals.orders_count.total,
-        onlineOrders: totals.orders_count.online,
-        totalGPV: `$${totals.gpv.total.toFixed(2)}`,
-        onlineGPV: `$${totals.gpv.online.toFixed(2)}`,
-        aov: `$${totals.aov.total.toFixed(2)}`
-      });
+      //   totalOrders: totals.orders_count.total,
+      //   onlineOrders: totals.orders_count.online,
+      //   totalGPV: `$${totals.gpv.total.toFixed(2)}`,
+      //   onlineGPV: `$${totals.gpv.online.toFixed(2)}`,
+      //   aov: `$${totals.aov.total.toFixed(2)}`
+      // });
 
       // Trigger reconciliation
       this.reconciliationCallback(totals);

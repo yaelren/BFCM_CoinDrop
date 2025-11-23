@@ -488,10 +488,10 @@ class LEDDashboard {
       }
       
       // console.log('✅ Counters initialized:', {
-        totalOrders: totals.orders_count.online,
-        totalSales: totals.gpv.online,
-        onlineGPV: totals.gpv.online
-      });
+      //   totalOrders: totals.orders_count.online,
+      //   totalSales: totals.gpv.online,
+      //   onlineGPV: totals.gpv.online
+      // });
     } catch (error) {
       // console.error('❌ Failed to initialize counters:', error);
     }
@@ -591,41 +591,41 @@ class LEDDashboard {
    */
   showInstructions() {
     // console.log(`
-╔═══════════════════════════════════════════════════════════════╗
-║            LED Dashboard - Usage Instructions                 ║
-╠═══════════════════════════════════════════════════════════════╣
-║                                                               ║
-║  📍 POSITIONING:                                              ║
-║  • Use the GUI controls to adjust element positions          ║
-║  • Click "📋 Log All Positions" to copy configurations       ║
-║  • Paste into ELEMENT_CONFIGS in led-dashboard.js            ║
-║                                                               ║
-║  🐛 DEBUG MODE:                                               ║
-║  • Toggle "Debug Mode" to see element boundaries             ║
-║                                                               ║
-║  🗺️ MAP & LOCATION LABELS:                                   ║
-║  • Dots appear at precise geographic coordinates             ║
-║  • Location label shows below map: "City, State, Country"    ║
-║  • Include city/country in API data for labels to display    ║
-║                                                               ║
-║  🔌 API INTEGRATION:                                          ║
-║  • Use dashboard.updateFromAPI(data) to update elements      ║
-║  • Example with location label:                              ║
-║    dashboard.updateFromAPI({                                  ║
-║      storeName: 'Nike Store',                                 ║
-║      location: {                                              ║
-║        lat: 40.7128,                                          ║
-║        lon: -74.0060,                                         ║
-║        city: 'New York',                                      ║
-║        state: 'NY',                                           ║
-║        country: 'USA'                                         ║
-║      },                                                       ║
-║      totalSales: 125000,                                      ║
-║      sale: 2500                                               ║
-║    });                                                        ║
-║                                                               ║
-╚═══════════════════════════════════════════════════════════════╝
-    `);
+    // ╔═══════════════════════════════════════════════════════════════╗
+    // ║            LED Dashboard - Usage Instructions                 ║
+    // ╠═══════════════════════════════════════════════════════════════╣
+    // ║                                                               ║
+    // ║  📍 POSITIONING:                                              ║
+    // ║  • Use the GUI controls to adjust element positions          ║
+    // ║  • Click "📋 Log All Positions" to copy configurations       ║
+    // ║  • Paste into ELEMENT_CONFIGS in led-dashboard.js            ║
+    // ║                                                               ║
+    // ║  🐛 DEBUG MODE:                                               ║
+    // ║  • Toggle "Debug Mode" to see element boundaries             ║
+    // ║                                                               ║
+    // ║  🗺️ MAP & LOCATION LABELS:                                   ║
+    // ║  • Dots appear at precise geographic coordinates             ║
+    // ║  • Location label shows below map: "City, State, Country"    ║
+    // ║  • Include city/country in API data for labels to display    ║
+    // ║                                                               ║
+    // ║  🔌 API INTEGRATION:                                          ║
+    // ║  • Use dashboard.updateFromAPI(data) to update elements      ║
+    // ║  • Example with location label:                              ║
+    // ║    dashboard.updateFromAPI({                                  ║
+    // ║      storeName: 'Nike Store',                                 ║
+    // ║      location: {                                              ║
+    // ║        lat: 40.7128,                                          ║
+    // ║        lon: -74.0060,                                         ║
+    // ║        city: 'New York',                                      ║
+    // ║        state: 'NY',                                           ║
+    // ║        country: 'USA'                                         ║
+    // ║      },                                                       ║
+    // ║      totalSales: 125000,                                      ║
+    // ║      sale: 2500                                               ║
+    // ║    });                                                        ║
+    // ║                                                               ║
+    // ╚═══════════════════════════════════════════════════════════════╝
+    // `);
   }
 
   /**
