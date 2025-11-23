@@ -105,20 +105,28 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
       const pos = this.body.position;
       const angle = this.body.angle;
       const config = getConfig();
-      p.push();
-      p.translate(pos.x, pos.y);
-      p.rotate(angle);
 
-      // Convert hex color + opacity to rgba
+      // Convert hex color + opacity to rgba for shadow
       const hexColor = config.particleShadowColor.replace('#', '');
       const r = parseInt(hexColor.substr(0, 2), 16);
       const g = parseInt(hexColor.substr(2, 2), 16);
       const b = parseInt(hexColor.substr(4, 2), 16);
 
-      p.drawingContext.shadowBlur = config.particleShadowBlur;
-      p.drawingContext.shadowColor = `rgba(${r}, ${g}, ${b}, ${config.particleShadowOpacity})`;
-      p.drawingContext.shadowOffsetX = config.particleShadowOffsetX;
-      p.drawingContext.shadowOffsetY = config.particleShadowOffsetY;
+      // Draw shadow as a separate ellipse underneath
+      p.push();
+      p.translate(pos.x + config.particleShadowOffsetX, pos.y + config.particleShadowOffsetY);
+      p.rotate(angle);
+      p.noStroke();
+      p.fill(r, g, b, config.particleShadowOpacity * 255);
+      p.drawingContext.filter = `blur(${config.particleShadowBlur}px)`;
+      p.ellipse(0, 0, this.r * 2);
+      p.drawingContext.filter = 'none';
+      p.pop();
+
+      // Draw the actual coin
+      p.push();
+      p.translate(pos.x, pos.y);
+      p.rotate(angle);
 
       if (this.image) {
         p.imageMode(p.CENTER);
@@ -139,10 +147,6 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
         p.noStroke();
         p.ellipse(0, 0, this.r * 2);
       }
-
-      p.drawingContext.shadowBlur = 0;
-      p.drawingContext.shadowOffsetX = 0;
-      p.drawingContext.shadowOffsetY = 0;
 
       p.pop();
     }
