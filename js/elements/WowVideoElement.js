@@ -11,7 +11,7 @@ export class WowVideoElement extends BaseElement {
       ...config,
       type: 'wowVideo',
       config: {
-        videoSrc: config.videoSrc || 'assets/WOW_animation.webm',
+        videoSrc: config.videoSrc || 'assets/WOW_animation_60fps.webm',
         playbackRate: config.playbackRate || 1.0, // Speed: 0.5 = half speed, 2.0 = double speed
         ...config.config
       }

@@ -99,7 +99,7 @@ const ELEMENT_CONFIGS = {
       cols: 20,
       rows: 15,
       pegSize: 15,
-      particleSize: 53,
+      particleSize: 54,
       particleSpawnRate: 9,
       maxParticles: 100,
       dropWidth: 520,
@@ -318,9 +318,9 @@ class LEDDashboard {
       visible: false, // Hidden by default, shown via GUI trigger
       zIndex: 10000, // Highest z-index to overlay everything
       background: { color: '#000000', opacity: 0 },
-      playbackRate: 1.5, // Speed: 0.5 = slower, 1.0 = normal, 1.5 = default, 2.0 = faster
+      playbackRate: 1.0, // Speed: 0.5 = slower, 1.0 = normal, 1.5 = default, 2.0 = faster
       config: {
-        videoSrc: 'assets/WOW_animation.webm'
+        videoSrc: 'assets/WOW_animation_60fps.webm'
       }
     });
     this.layoutManager.registerElement(this.elements.wowAnimation);
