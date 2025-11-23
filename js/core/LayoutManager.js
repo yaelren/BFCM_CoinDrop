@@ -290,6 +290,12 @@ export class LayoutManager {
         .onChange(value => {
           wowElement.setPlaybackRate(value);
         });
+
+      // Add trigger amount control if order processor is available
+      if (this.orderProcessor) {
+        wowFolder.add(this.orderProcessor.config, 'wowTriggerAmount', 0, 10000, 100)
+          .name('Auto-Trigger Amount ($)');
+      }
     }
   }
 

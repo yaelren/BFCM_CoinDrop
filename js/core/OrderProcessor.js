@@ -23,7 +23,8 @@ export class OrderProcessor {
     this.config = {
       minDisplayTime: config.minDisplayTime || 3000,  // Default 3 seconds between orders
       saleToPlinkDelay: config.saleToPlinkDelay || 200,  // Delay from sale to plinko
-      plinkoToCountersDelay: config.plinkoToCountersDelay || 300  // Delay before counters update
+      plinkoToCountersDelay: config.plinkoToCountersDelay || 300,  // Delay before counters update
+      wowTriggerAmount: config.wowTriggerAmount || 1000  // Trigger WOW animation for orders >= this amount
     };
 
     this.isProcessing = false;
@@ -149,6 +150,12 @@ export class OrderProcessor {
     console.log(`   %cCoins: ${tens}×$10 + ${ones}×$1 = ${tens + ones} TOTAL`, 'font-weight: bold; font-size: 14px; color: #FF9800');
     console.log('═════════════════════════════════════════════════════');
 
+    // Trigger WOW animation for high-value orders
+    if (usdAmount >= this.config.wowTriggerAmount) {
+      console.log(`🎉 HIGH VALUE ORDER ($${this.config.wowTriggerAmount}+) - TRIGGERING WOW ANIMATION!`);
+      this.triggerWowAnimation();
+    }
+
     // PHASE II: Update elements in sequence
     // 1. Sale element (with animation)
     await this.updateSale(usdAmount);
@@ -246,6 +253,23 @@ export class OrderProcessor {
     }
 
     sketch.dropCoins(tens, ones);
+  }
+
+  /**
+   * Trigger WOW animation for high-value orders
+   */
+  triggerWowAnimation() {
+    const wowElement = this.dashboard.elements.wowAnimation;
+    if (!wowElement) {
+      console.warn('WOW animation element not found');
+      return;
+    }
+
+    if (typeof wowElement.play === 'function') {
+      wowElement.play();
+    } else {
+      console.warn('WOW animation play method not available');
+    }
   }
 
   /**
