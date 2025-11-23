@@ -10,6 +10,7 @@ import { SlotMachineElement } from './elements/SlotMachineElement.js';
 import { TickerElement } from './elements/TickerElement.js';
 import { MapElement } from './elements/MapElement.js';
 import { P5Element } from './elements/P5Element.js';
+import { WowAnimationElement } from './elements/WowAnimationElement.js';
 import { createPlinkoSketch } from './sketches/plinko-sketch.js';
 import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.19/dist/lil-gui.esm.min.js';
 
@@ -78,7 +79,8 @@ const ELEMENT_CONFIGS = {
       locationLabelColor: '#333333',
       locationLabelPosition: 'bottom',
       locationLabelOffset: 0,
-      locationLabelMaxLength: 20  // Max characters before truncating (testing - adjust based on visual fit) (removes city if too long, then truncates country)
+      locationLabelMaxLength: 17,  // Max characters before truncating (testing - adjust based on visual fit) (removes city if too long, then truncates country)
+      locationLabelTextShadow: '0 0 5px rgba(1, 78, 116, 0.5), 0 0 20px rgba(1, 78, 116, 0.5)' // Dark teal glow effect
     }
   },
 
@@ -96,12 +98,12 @@ const ELEMENT_CONFIGS = {
       // Plinko game settings
       cols: 20,
       rows: 15,
-      pegSize: 11,
-      particleSize: 62,
+      pegSize: 15,
+      particleSize: 53,
       particleSpawnRate: 9,
       maxParticles: 100,
       dropWidth: 520,
-      gravity: 0.4,
+      gravity: 0.45,
       boundaryRadius: 1130,
       boundaryCenterY: -330,
       tunnelWidth: 750,
@@ -109,15 +111,15 @@ const ELEMENT_CONFIGS = {
       backgroundOpacity: 0,
       // Peg positioning
       pegOffsetX: 0,
-      pegOffsetY: -73,
+      pegOffsetY: 385,
       // Peg spacing (1.0 = default, <1.0 = closer together, >1.0 = further apart)
       pegSpacingX: 0.85,
       pegSpacingY: 0.85,
       // Removed pegs configuration (row: [columns])
       // Example: { 0: [5, 10], 1: [3] } removes pegs at column 5 & 10 in row 0, column 3 in row 1
       removedPegs: {
-        5: [9, 10, 11, 12, 13, 14],
-        7: [11, 12, 13]
+        3: [9, 10, 11, 12, 13, 14],
+        5: [11, 12, 13]
       },
       // Peg selection mode (enable to click pegs to remove them)
       pegSelectionMode: false,
@@ -126,13 +128,13 @@ const ELEMENT_CONFIGS = {
       particleFriction: 0.3,
       particleDensity: 1,
       particleFrictionAir: 0.01,
-      coinColliderRatio: 0.8,
+      coinColliderRatio: 0.95,
       // Peg physics settings
       pegRestitution: 0.8,
       pegFriction: 0,
       // Visibility settings
       showBoundaries: false,
-      showPegs: true,
+      showPegs: false,
       showClearanceZone: false,
       // Particle drop shadow
       particleShadowBlur: 27,
@@ -305,6 +307,25 @@ class LEDDashboard {
     // Online GPV Text
     this.elements.onlineGPV = new TextElement('onlineGPV', ELEMENT_CONFIGS.onlineGPV);
     this.layoutManager.registerElement(this.elements.onlineGPV);
+
+    // WOW Animation Overlay
+    this.elements.wowAnimation = new WowAnimationElement('wowAnimation', {
+      type: 'wowAnimation',
+      x: 0,
+      y: 0,
+      width: 4640,
+      height: 1760,
+      visible: false, // Hidden by default, shown via GUI trigger
+      zIndex: 10000, // Highest z-index to overlay everything
+      background: { color: '#000000', opacity: 0 },
+      config: {
+        frameCount: 180,
+        frameRate: 30,
+        basePath: 'assets/WOW/WOW_',
+        fileExtension: '.png'
+      }
+    });
+    this.layoutManager.registerElement(this.elements.wowAnimation);
   }
 
   /**

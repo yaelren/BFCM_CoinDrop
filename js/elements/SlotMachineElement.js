@@ -314,6 +314,7 @@ export class SlotMachineElement extends BaseElement {
     // Store old values before updating
     const oldDigitHeight = this.config.digitHeight;
     const oldMaxDigits = this.config.maxDigits;
+    const oldTextShadow = this.config.textShadow;
 
     super.updateConfig(newConfig);
 
@@ -328,6 +329,37 @@ export class SlotMachineElement extends BaseElement {
       this.initialized = false;
       this.createFixedDigits();
       this.setValue(this.currentValue);
+    }
+    // Update textShadow on existing digit spans if it changed
+    else if (this.config.textShadow !== oldTextShadow) {
+      this.updateDigitTextShadow();
+    }
+  }
+
+  /**
+   * Update text shadow on all existing digit spans
+   */
+  updateDigitTextShadow() {
+    if (!this.digitContainers) return;
+
+    this.digitContainers.forEach(container => {
+      const digitSpans = container.column.querySelectorAll('span');
+      digitSpans.forEach(span => {
+        if (this.config.textShadow) {
+          span.style.textShadow = this.config.textShadow;
+        } else {
+          span.style.textShadow = '';
+        }
+      });
+    });
+
+    // Also update dollar sign if it exists
+    if (this.dollarContainer) {
+      if (this.config.textShadow) {
+        this.dollarContainer.style.textShadow = this.config.textShadow;
+      } else {
+        this.dollarContainer.style.textShadow = '';
+      }
     }
   }
 

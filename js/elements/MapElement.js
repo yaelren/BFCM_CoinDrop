@@ -35,6 +35,7 @@ export class MapElement extends BaseElement {
         locationLabelColor: config.locationLabelColor || '#333333',
         locationLabelPosition: config.locationLabelPosition || 'bottom', // 'bottom' or 'top'
         locationLabelOffset: config.locationLabelOffset || 10, // Distance from edge
+        locationLabelTextShadow: config.locationLabelTextShadow || null, // Optional text glow effect
 
         ...config.config
       }
@@ -477,7 +478,7 @@ export class MapElement extends BaseElement {
 
     const position = this.config.locationLabelPosition === 'top' ? 'top' : 'bottom';
 
-    this.locationLabel.style.cssText = `
+    let labelStyle = `
       position: absolute;
       ${position}: ${responsiveOffset}px;
       left: 50%;
@@ -494,6 +495,13 @@ export class MapElement extends BaseElement {
       white-space: nowrap;
       z-index: 10;
     `;
+
+    // Apply text glow effect if configured
+    if (this.config.locationLabelTextShadow) {
+      labelStyle += `text-shadow: ${this.config.locationLabelTextShadow};`;
+    }
+
+    this.locationLabel.style.cssText = labelStyle;
   }
 
   /**

@@ -240,10 +240,13 @@ export class LayoutManager {
     this.controlsGUI.domElement.style.left = 'auto';
     this.controlsGUI.domElement.style.right = '10px';
 
+    // Global Text Glow Controls (affects all text elements)
+    this.setupGlobalTextGlowControls(GUI);
+
     // Animation Timing Controls (if order processor provided)
     if (this.orderProcessor) {
       const timingFolder = this.controlsGUI.addFolder('⏱️ Animation Timing');
-      
+
       // Directly bind to the processor's config object
       // lil-gui will modify the values in place
       timingFolder.add(this.orderProcessor.config, 'minDisplayTime', 1000, 10000, 100)
@@ -271,11 +274,168 @@ export class LayoutManager {
     // Global controls
     this.controlsGUI.add({ logAllConfigs: () => this.logAllConfigs() }, 'logAllConfigs')
       .name('📋 Log All Configs');
+
+    // WOW Animation trigger
+    this.controlsGUI.add({ 
+      playWow: () => this.triggerWowAnimation() 
+    }, 'playWow')
+      .name('🎉 Play WOW Animation');
+  }
+
+  /**
+   * Setup Global Text Glow Controls
+   * Applies to all text elements: ticker, counters (orders, revenue, items), slot machine, and map location label
+   */
+  setupGlobalTextGlowControls(GUI) {
+    const globalGlowFolder = this.controlsGUI.addFolder('✨ Global Text Glow');
+
+    // Initialize global glow state
+    this.globalGlowState = {
+      enabled: true,
+      innerBlur: 5,
+      outerBlur: 20,
+      innerOpacity: 0.5,
+      outerOpacity: 0.5,
+      glowColor: '#014E74' // Dark teal
+    };
+
+    // Get all text elements (ticker, counter, text, slotMachine, map)
+    const getTextElements = () => {
+      const textElements = [];
+      this.elements.forEach((element) => {
+        const config = element.getConfig();
+        const type = config.type;
+        if (type === 'ticker' || type === 'counter' || type === 'text' || type === 'slotMachine') {
+          textElements.push({ element, config });
+        } else if (type === 'map' && config.showLocationLabel) {
+          // Map location label uses locationLabelTextShadow
+          textElements.push({ element, config, isMapLabel: true });
+        }
+      });
+      return textElements;
+    };
+
+    // Update all text elements with new glow settings
+    const updateAllTextGlow = () => {
+      const textElements = getTextElements();
+
+      textElements.forEach(({ element, config, isMapLabel }) => {
+        let updateObj = {};
+
+        if (!this.globalGlowState.enabled) {
+          if (isMapLabel) {
+            updateObj.locationLabelTextShadow = null;
+          } else {
+            updateObj.textShadow = null;
+          }
+        } else {
+          // Convert hex to RGB
+          const hex = this.globalGlowState.glowColor.replace('#', '');
+          const r = parseInt(hex.substring(0, 2), 16);
+          const g = parseInt(hex.substring(2, 4), 16);
+          const b = parseInt(hex.substring(4, 6), 16);
+
+          const glowValue = `0 0 ${this.globalGlowState.innerBlur}px rgba(${r}, ${g}, ${b}, ${this.globalGlowState.innerOpacity}), 0 0 ${this.globalGlowState.outerBlur}px rgba(${r}, ${g}, ${b}, ${this.globalGlowState.outerOpacity})`;
+
+          if (isMapLabel) {
+            updateObj.locationLabelTextShadow = glowValue;
+          } else {
+            updateObj.textShadow = glowValue;
+          }
+        }
+        element.updateConfig(updateObj);
+      });
+    };
+
+    globalGlowFolder.add(this.globalGlowState, 'enabled')
+      .name('Enable Glow')
+      .onChange(updateAllTextGlow);
+
+    globalGlowFolder.addColor(this.globalGlowState, 'glowColor')
+      .name('Glow Color')
+      .onChange(updateAllTextGlow);
+
+    globalGlowFolder.add(this.globalGlowState, 'innerBlur', 0, 50, 1)
+      .name('Inner Blur (outline)')
+      .onChange(updateAllTextGlow);
+
+    globalGlowFolder.add(this.globalGlowState, 'innerOpacity', 0, 1, 0.05)
+      .name('Inner Opacity')
+      .onChange(updateAllTextGlow);
+
+    globalGlowFolder.add(this.globalGlowState, 'outerBlur', 0, 50, 1)
+      .name('Outer Blur (glow)')
+      .onChange(updateAllTextGlow);
+
+    globalGlowFolder.add(this.globalGlowState, 'outerOpacity', 0, 1, 0.05)
+      .name('Outer Opacity')
+      .onChange(updateAllTextGlow);
+
+    // Preset buttons
+    const presets = {
+      'Dark Teal Glow': () => {
+        this.globalGlowState.glowColor = '#014E74';
+        this.globalGlowState.innerBlur = 5;
+        this.globalGlowState.outerBlur = 20;
+        this.globalGlowState.innerOpacity = 0.5;
+        this.globalGlowState.outerOpacity = 0.5;
+        this.globalGlowState.enabled = true;
+        updateAllTextGlow();
+        globalGlowFolder.controllersRecursive().forEach(c => c.updateDisplay());
+      },
+      'Light Blue Glow': () => {
+        this.globalGlowState.glowColor = '#ADD8E6';
+        this.globalGlowState.innerBlur = 8;
+        this.globalGlowState.outerBlur = 16;
+        this.globalGlowState.innerOpacity = 0.8;
+        this.globalGlowState.outerOpacity = 0.5;
+        this.globalGlowState.enabled = true;
+        updateAllTextGlow();
+        globalGlowFolder.controllersRecursive().forEach(c => c.updateDisplay());
+      },
+      'Neon Blue': () => {
+        this.globalGlowState.glowColor = '#00FFFF';
+        this.globalGlowState.innerBlur = 12;
+        this.globalGlowState.outerBlur = 24;
+        this.globalGlowState.innerOpacity = 1.0;
+        this.globalGlowState.outerOpacity = 0.7;
+        this.globalGlowState.enabled = true;
+        updateAllTextGlow();
+        globalGlowFolder.controllersRecursive().forEach(c => c.updateDisplay());
+      },
+      'Red Glow': () => {
+        this.globalGlowState.glowColor = '#FF0000';
+        this.globalGlowState.innerBlur = 8;
+        this.globalGlowState.outerBlur = 16;
+        this.globalGlowState.innerOpacity = 0.8;
+        this.globalGlowState.outerOpacity = 0.5;
+        this.globalGlowState.enabled = true;
+        updateAllTextGlow();
+        globalGlowFolder.controllersRecursive().forEach(c => c.updateDisplay());
+      },
+      'Disable Glow': () => {
+        this.globalGlowState.enabled = false;
+        updateAllTextGlow();
+        globalGlowFolder.controllersRecursive().forEach(c => c.updateDisplay());
+      }
+    };
+
+    globalGlowFolder.add(presets, 'Dark Teal Glow').name('Preset: Dark Teal (Default)');
+    globalGlowFolder.add(presets, 'Light Blue Glow').name('Preset: Light Blue');
+    globalGlowFolder.add(presets, 'Neon Blue').name('Preset: Neon Blue');
+    globalGlowFolder.add(presets, 'Red Glow').name('Preset: Red Glow');
+    globalGlowFolder.add(presets, 'Disable Glow').name('Preset: No Glow');
+
+    globalGlowFolder.open();
+
+    // Apply initial glow state to sync all elements
+    updateAllTextGlow();
   }
 
   /**
    * Add text glow controls to a folder
    * Shared by all text-based elements (ticker, counter, text, slotMachine)
+   * DEPRECATED: Use global text glow controls instead
    */
   addTextGlowControls(folder, element, config) {
     const glowFolder = folder.addFolder('✨ Text Glow Effect');
@@ -422,8 +582,6 @@ export class LayoutManager {
             .name('Max Queue Size')
             .onChange(() => element.updateConfig(config));
         }
-        // Add text glow controls
-        this.addTextGlowControls(folder, element, config);
         break;
 
       case 'counter':
@@ -442,8 +600,6 @@ export class LayoutManager {
             .name('Animation Speed')
             .onChange(() => element.updateConfig(config));
         }
-        // Add text glow controls
-        this.addTextGlowControls(folder, element, config);
         break;
 
       case 'text':
@@ -462,8 +618,6 @@ export class LayoutManager {
             .name('Animation Speed')
             .onChange(() => element.updateConfig(config));
         }
-        // Add text glow controls
-        this.addTextGlowControls(folder, element, config);
         break;
 
       case 'slotMachine':
@@ -520,8 +674,6 @@ export class LayoutManager {
             .name('Digit Height (crop)')
             .onChange(() => element.updateConfig(config));
         }
-        // Add text glow controls
-        this.addTextGlowControls(folder, element, config);
         break;
 
       case 'map':
@@ -839,6 +991,21 @@ export class LayoutManager {
 
     console.log(JSON.stringify(configs, null, 2));
     console.log('\n=== Copy and paste above ===\n');
+  }
+
+  /**
+   * Trigger WOW animation overlay
+   */
+  triggerWowAnimation() {
+    const wowElement = this.elements.get('wowAnimation');
+    
+    if (!wowElement) {
+      console.warn('WOW Animation element not found');
+      return;
+    }
+
+    console.log('🎉 Triggering WOW animation...');
+    wowElement.play();
   }
 
   /**
