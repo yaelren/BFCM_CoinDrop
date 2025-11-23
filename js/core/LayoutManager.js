@@ -1001,7 +1001,7 @@ export class LayoutManager {
    * Log all element configurations (element-specific settings only)
    */
   logAllConfigs() {
-    // console.log('\n=== LED Dashboard Element Configurations ===\n');
+    console.log('\n=== LED Dashboard Element Configurations ===\n');
 
     const configs = {};
     this.elements.forEach(element => {
@@ -1009,19 +1009,19 @@ export class LayoutManager {
       configs[element.id] = { ...config };
     });
 
-    // console.log(JSON.stringify(configs, null, 2));
+    console.log(JSON.stringify(configs, null, 2));
 
     // Log animation timing settings
     if (this.orderProcessor) {
-      // console.log('\n=== Animation Timing Settings ===\n');
-      // console.log(JSON.stringify({
-      //   minDisplayTime: this.orderProcessor.config.minDisplayTime,
-      //   saleToPlinkDelay: this.orderProcessor.config.saleToPlinkDelay,
-      //   plinkoToCountersDelay: this.orderProcessor.config.plinkoToCountersDelay
-      // }, null, 2));
+      console.log('\n=== Animation Timing Settings ===\n');
+      console.log(JSON.stringify({
+        minDisplayTime: this.orderProcessor.config.minDisplayTime,
+        saleToPlinkDelay: this.orderProcessor.config.saleToPlinkDelay,
+        plinkoToCountersDelay: this.orderProcessor.config.plinkoToCountersDelay
+      }, null, 2));
     }
 
-    // console.log('\n=== Copy and paste above ===\n');
+    console.log('\n=== Copy and paste above ===\n');
   }
 
   /**

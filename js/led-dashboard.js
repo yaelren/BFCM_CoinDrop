@@ -188,8 +188,8 @@ const ELEMENT_CONFIGS = {
 
   sale: {
     type: 'slotMachine',
-    x: 3650,
-    y: 1167,
+    x: 3629,
+    y: 1165,
     width: 461,
     height: 149,
     visible: true,
