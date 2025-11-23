@@ -990,6 +990,17 @@ export class LayoutManager {
     });
 
     console.log(JSON.stringify(configs, null, 2));
+
+    // Log animation timing settings
+    if (this.orderProcessor) {
+      console.log('\n=== Animation Timing Settings ===\n');
+      console.log(JSON.stringify({
+        minDisplayTime: this.orderProcessor.config.minDisplayTime,
+        saleToPlinkDelay: this.orderProcessor.config.saleToPlinkDelay,
+        plinkoToCountersDelay: this.orderProcessor.config.plinkoToCountersDelay
+      }, null, 2));
+    }
+
     console.log('\n=== Copy and paste above ===\n');
   }
 

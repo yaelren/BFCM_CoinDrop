@@ -137,12 +137,12 @@ const ELEMENT_CONFIGS = {
       showPegs: false,
       showClearanceZone: false,
       // Particle drop shadow
-      particleShadowBlur: 27,
+      particleShadowBlur: 11,
       particleShadowSpread: 0,
-      particleShadowColor: '#000000',
-      particleShadowOpacity: 0.5,
-      particleShadowOffsetX: -2,
-      particleShadowOffsetY: 10
+      particleShadowColor: '#94942e',
+      particleShadowOpacity: 1,
+      particleShadowOffsetX: -1,
+      particleShadowOffsetY: 5
     }
   },
 
@@ -430,7 +430,9 @@ class LEDDashboard {
 
       // Create order processor (PHASE I: logging only)
       this.processor = new OrderProcessor(this.queueManager, this, {
-        minDisplayTime: 3000  // 3 seconds between orders
+        minDisplayTime: 5000,  // 5 seconds between orders
+        saleToPlinkDelay: 500,  // 500ms delay from sale to plinko drop
+        plinkoToCountersDelay: 500  // 500ms delay before counters update
       });
 
       // Create order poller (every 2 seconds)

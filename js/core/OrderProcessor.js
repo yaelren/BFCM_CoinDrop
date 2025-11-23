@@ -152,15 +152,15 @@ export class OrderProcessor {
     // PHASE II: Update elements in sequence
     // 1. Sale element (with animation)
     await this.updateSale(usdAmount);
-    
+
     // 2. Wait for sale animation to start, then trigger Plinko
     await this.delay(this.config.saleToPlinkDelay);
     this.dropCoins(tens, ones);
-    
+
     // 3. Update other elements (location, store name)
     await this.updateLocation(order);
     await this.updateStoreName(businessName);
-    
+
     // 4. Finally update counters (total sales and orders)
     await this.delay(this.config.plinkoToCountersDelay);
     await this.updateCounters(usdAmount);

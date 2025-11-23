@@ -117,9 +117,12 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
       p.translate(pos.x + config.particleShadowOffsetX, pos.y + config.particleShadowOffsetY);
       p.rotate(angle);
       p.noStroke();
-      p.fill(r, g, b, config.particleShadowOpacity * 255);
+      // Use canvas fillStyle to avoid HSB color mode interference
+      p.drawingContext.fillStyle = `rgba(${r}, ${g}, ${b}, ${config.particleShadowOpacity})`;
       p.drawingContext.filter = `blur(${config.particleShadowBlur}px)`;
-      p.ellipse(0, 0, this.r * 2);
+      p.drawingContext.beginPath();
+      p.drawingContext.arc(0, 0, this.r, 0, Math.PI * 2);
+      p.drawingContext.fill();
       p.drawingContext.filter = 'none';
       p.pop();
 
