@@ -28,6 +28,10 @@ export class WowAnimationElement extends BaseElement {
 
     this.canvas = null;
     this.ctx = null;
+
+    // Cache scaling calculations
+    this.cachedScale = null;
+    this.cachedDrawParams = null;
   }
 
   createElement() {
@@ -45,7 +49,16 @@ export class WowAnimationElement extends BaseElement {
       object-fit: contain;
     `;
 
-    this.ctx = this.canvas.getContext('2d');
+    // GPU-optimized context with performance hints
+    this.ctx = this.canvas.getContext('2d', {
+      alpha: true,  // Need transparency for overlay
+      desynchronized: true,  // Reduce latency for animations
+      willReadFrequently: false  // We're writing, not reading
+    });
+
+    // Disable image smoothing for faster rendering
+    this.ctx.imageSmoothingEnabled = false;
+
     container.appendChild(this.canvas);
 
     // Set canvas resolution to match viewport
@@ -87,8 +100,9 @@ export class WowAnimationElement extends BaseElement {
   resizeCanvas() {
     if (!this.canvas) return;
 
-    const dpr = window.devicePixelRatio || 1;
-    
+    // Limit DPR to max 2 for performance (reduces pixel count significantly)
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
     // Use viewport dimensions for fixed overlay
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -97,6 +111,9 @@ export class WowAnimationElement extends BaseElement {
     this.canvas.height = height * dpr;
 
     this.ctx.scale(dpr, dpr);
+
+    // Invalidate cached draw parameters on resize
+    this.cachedDrawParams = null;
   }
 
   /**
@@ -196,26 +213,42 @@ export class WowAnimationElement extends BaseElement {
     if (!this.ctx || !this.frames[frameIndex]) return;
 
     const img = this.frames[frameIndex];
-    const canvasWidth = this.canvas.width / (window.devicePixelRatio || 1);
-    const canvasHeight = this.canvas.height / (window.devicePixelRatio || 1);
+
+    // Cache draw parameters (only recalculate on resize or first frame)
+    if (!this.cachedDrawParams) {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const canvasWidth = this.canvas.width / dpr;
+      const canvasHeight = this.canvas.height / dpr;
+
+      // Calculate scaling to COVER canvas while maintaining aspect ratio
+      const scale = Math.max(
+        canvasWidth / img.width,
+        canvasHeight / img.height
+      );
+
+      const scaledWidth = img.width * scale;
+      const scaledHeight = img.height * scale;
+
+      // Center the image
+      const x = (canvasWidth - scaledWidth) / 2;
+      const y = (canvasHeight - scaledHeight) / 2;
+
+      this.cachedDrawParams = {
+        canvasWidth,
+        canvasHeight,
+        x,
+        y,
+        scaledWidth,
+        scaledHeight
+      };
+    }
+
+    const { canvasWidth, canvasHeight, x, y, scaledWidth, scaledHeight } = this.cachedDrawParams;
 
     // Clear canvas with transparency
     this.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-    // Calculate scaling to COVER canvas while maintaining aspect ratio
-    // Use Math.max instead of Math.min to ensure image covers entire viewport
-    const scale = Math.max(
-      canvasWidth / img.width,
-      canvasHeight / img.height
-    );
-
-    const scaledWidth = img.width * scale;
-    const scaledHeight = img.height * scale;
-
-    // Center the image
-    const x = (canvasWidth - scaledWidth) / 2;
-    const y = (canvasHeight - scaledHeight) / 2;
-
+    // Draw image with cached parameters
     this.ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
   }
 
@@ -239,9 +272,8 @@ export class WowAnimationElement extends BaseElement {
     }
 
     // Clear canvas
-    if (this.ctx) {
-      const canvasWidth = this.canvas.width / (window.devicePixelRatio || 1);
-      const canvasHeight = this.canvas.height / (window.devicePixelRatio || 1);
+    if (this.ctx && this.cachedDrawParams) {
+      const { canvasWidth, canvasHeight } = this.cachedDrawParams;
       this.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     }
   }

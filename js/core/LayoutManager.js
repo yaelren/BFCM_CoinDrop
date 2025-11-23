@@ -275,11 +275,22 @@ export class LayoutManager {
     this.controlsGUI.add({ logAllConfigs: () => this.logAllConfigs() }, 'logAllConfigs')
       .name('📋 Log All Configs');
 
-    // WOW Animation trigger
-    this.controlsGUI.add({ 
-      playWow: () => this.triggerWowAnimation() 
-    }, 'playWow')
-      .name('🎉 Play WOW Animation');
+    // WOW Animation controls
+    const wowFolder = this.controlsGUI.addFolder('🎉 WOW Animation');
+
+    const wowElement = this.elements.get('wowAnimation');
+    if (wowElement) {
+      wowFolder.add({
+        play: () => this.triggerWowAnimation()
+      }, 'play')
+        .name('▶️ Play');
+
+      wowFolder.add(wowElement.config, 'playbackRate', 0.25, 4.0, 0.25)
+        .name('Speed')
+        .onChange(value => {
+          wowElement.setPlaybackRate(value);
+        });
+    }
   }
 
   /**

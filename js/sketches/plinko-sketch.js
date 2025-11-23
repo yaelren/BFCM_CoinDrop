@@ -133,18 +133,12 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
 
       if (this.image) {
         p.imageMode(p.CENTER);
-        p.drawingContext.save();
-        p.drawingContext.beginPath();
-        p.drawingContext.arc(0, 0, this.r, 0, Math.PI * 2);
-        p.drawingContext.clip();
-
         const diameter = this.r * 2;
         const aspectRatio = this.image.width / this.image.height;
         const imgWidth = diameter;
         const imgHeight = diameter / aspectRatio;
 
         p.image(this.image, 0, 0, imgWidth, imgHeight);
-        p.drawingContext.restore();
       } else {
         p.fill(this.hue, 100, 100);
         p.noStroke();

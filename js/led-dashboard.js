@@ -10,7 +10,7 @@ import { SlotMachineElement } from './elements/SlotMachineElement.js';
 import { TickerElement } from './elements/TickerElement.js';
 import { MapElement } from './elements/MapElement.js';
 import { P5Element } from './elements/P5Element.js';
-import { WowAnimationElement } from './elements/WowAnimationElement.js';
+import { WowVideoElement } from './elements/WowVideoElement.js';
 import { createPlinkoSketch } from './sketches/plinko-sketch.js';
 import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.19/dist/lil-gui.esm.min.js';
 
@@ -140,7 +140,7 @@ const ELEMENT_CONFIGS = {
       particleShadowBlur: 11,
       particleShadowSpread: 0,
       particleShadowColor: '#94942e',
-      particleShadowOpacity: 1,
+      particleShadowOpacity: 0,
       particleShadowOffsetX: -1,
       particleShadowOffsetY: 5
     }
@@ -308,9 +308,9 @@ class LEDDashboard {
     this.elements.onlineGPV = new TextElement('onlineGPV', ELEMENT_CONFIGS.onlineGPV);
     this.layoutManager.registerElement(this.elements.onlineGPV);
 
-    // WOW Animation Overlay
-    this.elements.wowAnimation = new WowAnimationElement('wowAnimation', {
-      type: 'wowAnimation',
+    // WOW Video Overlay - Hardware accelerated WebM with transparency
+    this.elements.wowAnimation = new WowVideoElement('wowAnimation', {
+      type: 'wowVideo',
       x: 0,
       y: 0,
       width: 4640,
@@ -318,11 +318,9 @@ class LEDDashboard {
       visible: false, // Hidden by default, shown via GUI trigger
       zIndex: 10000, // Highest z-index to overlay everything
       background: { color: '#000000', opacity: 0 },
+      playbackRate: 1.5, // Speed: 0.5 = slower, 1.0 = normal, 1.5 = default, 2.0 = faster
       config: {
-        frameCount: 180,
-        frameRate: 30,
-        basePath: 'assets/WOW/WOW_',
-        fileExtension: '.png'
+        videoSrc: 'assets/WOW_animation.webm'
       }
     });
     this.layoutManager.registerElement(this.elements.wowAnimation);
