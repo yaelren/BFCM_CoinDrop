@@ -382,7 +382,7 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
       const remainder = totalAmount % 50;
       tenCoins = Math.floor(remainder / 10);
       oneCoins = remainder % 10;
-      console.log(`💰 High value purchase: ${fiftyCoins}×$50 + ${tenCoins}×$10 + ${oneCoins}×$1 = $${totalAmount}`);
+      // console.log(`💰 High value purchase: ${fiftyCoins}×$50 + ${tenCoins}×$10 + ${oneCoins}×$1 = $${totalAmount}`);
     } else {
       // For amounts < $300, use the original tens/ones logic
       tenCoins = tens;
@@ -419,7 +419,7 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
       particles.push(particle);
     }
     
-    console.log(`💰 Dropped ${fiftyCoins}×$50 + ${tenCoins}×$10 + ${oneCoins}×$1 = ${fiftyCoins + tenCoins + oneCoins} coins (total: $${totalAmount})`);
+    // console.log(`💰 Dropped ${fiftyCoins}×$50 + ${tenCoins}×$10 + ${oneCoins}×$1 = ${fiftyCoins + tenCoins + oneCoins} coins (total: $${totalAmount})`);
   }
 
   // P5 sketch methods
@@ -437,7 +437,7 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
 
       // Calculate scale factor based on canvas width relative to reference
       scaleFactor = p.width / REFERENCE_WIDTH;
-      console.log(`Plinko scale factor: ${scaleFactor.toFixed(4)} (canvas: ${p.width}px, ref: ${REFERENCE_WIDTH}px)`);
+      // console.log(`Plinko scale factor: ${scaleFactor.toFixed(4)} (canvas: ${p.width}px, ref: ${REFERENCE_WIDTH}px)`);
 
       engine = Engine.create();
       world = engine.world;
@@ -450,7 +450,7 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
       const centerX = p.width / 2;
       particles.push(new Particle(centerX, -100, getConfig().particleSize * scaleFactor));
 
-      console.log('Plinko game initialized:', p.width, 'x', p.height);
+      // console.log('Plinko game initialized:', p.width, 'x', p.height);
     },
 
     draw: () => {
@@ -536,7 +536,7 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
 
       // Recalculate scale factor on resize
       scaleFactor = p.width / REFERENCE_WIDTH;
-      console.log(`Plinko resized - new scale factor: ${scaleFactor.toFixed(4)}`);
+      // console.log(`Plinko resized - new scale factor: ${scaleFactor.toFixed(4)}`);
 
       regenerate();
     },
@@ -573,11 +573,11 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
             if (newRemovedPegs[row].length === 0) {
               delete newRemovedPegs[row];
             }
-            console.log(`✅ Restored peg at row ${row}, col ${col}`);
+            // console.log(`✅ Restored peg at row ${row}, col ${col}`);
           } else {
             // Add peg to removal list
             newRemovedPegs[row].push(col);
-            console.log(`❌ Marked peg for removal: row ${row}, col ${col}`);
+            // console.log(`❌ Marked peg for removal: row ${row}, col ${col}`);
           }
 
           // Update external config and regenerate
@@ -585,7 +585,7 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
           regenerate();
 
           // Log current removed pegs config
-          console.log('Current removedPegs config:', JSON.stringify(newRemovedPegs, null, 2));
+          // console.log('Current removedPegs config:', JSON.stringify(newRemovedPegs, null, 2));
 
           break; // Only handle one peg click at a time
         }

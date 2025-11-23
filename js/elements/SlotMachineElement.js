@@ -294,7 +294,7 @@ export class SlotMachineElement extends BaseElement {
    */
   updateData(newValue) {
     if (typeof newValue !== 'number') {
-      console.warn(`SlotMachineElement ${this.id}: Invalid value type`, newValue);
+      // console.warn(`SlotMachineElement ${this.id}: Invalid value type`, newValue);
       return;
     }
 

@@ -38,11 +38,11 @@ export class OrderPoller {
    */
   start() {
     if (this.isRunning) {
-      console.warn('Order poller already running');
+      // console.warn('Order poller already running');
       return;
     }
 
-    console.log('📦 Starting queue-based order polling');
+    // console.log('📦 Starting queue-based order polling');
     this.isRunning = true;
 
     // Start polling loop
@@ -55,7 +55,7 @@ export class OrderPoller {
   stop() {
     if (!this.isRunning) return;
 
-    console.log('Stopping order polling');
+    // console.log('Stopping order polling');
     this.isRunning = false;
 
     if (this.pollLoopTimeoutId) {
@@ -102,7 +102,7 @@ export class OrderPoller {
 
       // Success: reset error counter
       if (this.consecutiveErrors > 0) {
-        console.log('✅ Order polling recovered');
+        // console.log('✅ Order polling recovered');
         this.consecutiveErrors = 0;
         this.currentInterval = this.baseInterval;
       }
@@ -114,12 +114,12 @@ export class OrderPoller {
         // Add to queue
         const added = this.queueManager.enqueue(newOrders);
 
-        console.log(`📦 Fetched ${orders.length} orders, ${newOrders.length} new, ${added} added to queue`);
-        console.log(`   Queue will be processed before next fetch`);
+        // console.log(`📦 Fetched ${orders.length} orders, ${newOrders.length} new, ${added} added to queue`);
+        // console.log(`   Queue will be processed before next fetch`);
       } else if (orders.length > 0) {
-        console.log(`📦 Fetched ${orders.length} orders, all duplicates (filtered)`);
+        // console.log(`📦 Fetched ${orders.length} orders, all duplicates (filtered)`);
       } else {
-        console.log(`📦 No new orders available`);
+        // console.log(`📦 No new orders available`);
       }
 
     } catch (error) {
@@ -131,13 +131,13 @@ export class OrderPoller {
         this.maxInterval
       );
 
-      console.error(`❌ Order fetch error #${this.consecutiveErrors}, backing off to ${this.currentInterval}ms`);
+      // console.error(`❌ Order fetch error #${this.consecutiveErrors}, backing off to ${this.currentInterval}ms`);
 
       this.onError(error);
 
       // Alert if too many errors
       if (this.consecutiveErrors >= 5) {
-        console.warn('⚠️ Multiple consecutive order polling errors - API may be unreachable');
+        // console.warn('⚠️ Multiple consecutive order polling errors - API may be unreachable');
       }
     }
   }

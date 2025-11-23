@@ -69,9 +69,9 @@ export class WowAnimationElement extends BaseElement {
   }
 
   onInit() {
-    console.log('WowAnimationElement: Initializing...');
-    console.log('Container:', this.container);
-    console.log('Canvas element:', this.canvas);
+    // console.log('WowAnimationElement: Initializing...');
+    // console.log('Container:', this.container);
+    // console.log('Canvas element:', this.canvas);
     
     // Override BaseElement's positioning to make this a fixed overlay
     // Use setProperty with 'important' priority
@@ -120,7 +120,7 @@ export class WowAnimationElement extends BaseElement {
    * Preload all PNG frames
    */
   async preloadFrames() {
-    console.log(`WowAnimationElement: Preloading ${this.config.frameCount} frames from ${this.config.basePath}...`);
+    // console.log(`WowAnimationElement: Preloading ${this.config.frameCount} frames from ${this.config.basePath}...`);
 
     const loadPromises = [];
 
@@ -135,7 +135,7 @@ export class WowAnimationElement extends BaseElement {
           resolve();
         };
         img.onerror = () => {
-          console.warn(`Failed to load frame: ${framePath}`);
+          // console.warn(`Failed to load frame: ${framePath}`);
           reject();
         };
         img.src = framePath;
@@ -147,9 +147,9 @@ export class WowAnimationElement extends BaseElement {
     try {
       await Promise.all(loadPromises);
       this.isLoaded = true;
-      console.log('WowAnimationElement: All frames loaded successfully');
+      // console.log('WowAnimationElement: All frames loaded successfully');
     } catch (error) {
-      console.error('WowAnimationElement: Error loading frames', error);
+      // console.error('WowAnimationElement: Error loading frames', error);
     }
   }
 
@@ -158,16 +158,16 @@ export class WowAnimationElement extends BaseElement {
    */
   play() {
     if (!this.isLoaded) {
-      console.warn('WowAnimationElement: Frames not loaded yet');
+      // console.warn('WowAnimationElement: Frames not loaded yet');
       return;
     }
 
     if (this.isPlaying) {
-      console.warn('WowAnimationElement: Animation already playing');
+      // console.warn('WowAnimationElement: Animation already playing');
       return;
     }
 
-    console.log('🎉 Starting WOW animation playback');
+    // console.log('🎉 Starting WOW animation playback');
 
     this.isPlaying = true;
     this.currentFrame = 0;
@@ -256,7 +256,7 @@ export class WowAnimationElement extends BaseElement {
    * Stop animation
    */
   stop() {
-    console.log('🎉 WOW animation playback complete');
+    // console.log('🎉 WOW animation playback complete');
     
     this.isPlaying = false;
     this.currentFrame = 0;

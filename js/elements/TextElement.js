@@ -86,7 +86,7 @@ export class TextElement extends BaseElement {
    */
   updateData(newValue) {
     if (typeof newValue !== 'number') {
-      console.warn(`TextElement ${this.id}: Invalid value type`, newValue);
+      // console.warn(`TextElement ${this.id}: Invalid value type`, newValue);
       return;
     }
 

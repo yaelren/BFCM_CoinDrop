@@ -18,7 +18,7 @@ class Dashboard {
      * Initialize the dashboard
      */
     async init() {
-        console.log('🚀 Initializing BFCM Dashboard...');
+        // console.log('🚀 Initializing BFCM Dashboard...');
 
         // Test API connection first
         const connected = await api.testConnection();
@@ -38,7 +38,7 @@ class Dashboard {
         this.isRunning = true;
         this.updateStatus('Connected', true);
 
-        console.log('✅ Dashboard initialized successfully');
+        // console.log('✅ Dashboard initialized successfully');
     }
 
     /**
@@ -55,7 +55,7 @@ class Dashboard {
             await this.updateOrders();
         }, this.pollingFrequency.orders);
 
-        console.log('🔄 Polling started');
+        // console.log('🔄 Polling started');
     }
 
     /**
@@ -69,7 +69,7 @@ class Dashboard {
             clearInterval(this.pollingIntervals.orders);
         }
         this.isRunning = false;
-        console.log('⏸️ Polling stopped');
+        // console.log('⏸️ Polling stopped');
     }
 
     /**
@@ -85,14 +85,14 @@ class Dashboard {
             toggleSwitch.classList.remove('active');
             toggleStatus.textContent = 'OFF';
             toggleStatus.style.color = '#999';
-            console.log('⏸️ Auto-polling disabled - use Refresh button for updates');
+            // console.log('⏸️ Auto-polling disabled - use Refresh button for updates');
         } else {
             // Turn ON auto-polling
             this.startPolling();
             toggleSwitch.classList.add('active');
             toggleStatus.textContent = 'ON';
             toggleStatus.style.color = '#4CAF50';
-            console.log('▶️ Auto-polling enabled - data updates every 2-3 seconds');
+            // console.log('▶️ Auto-polling enabled - data updates every 2-3 seconds');
         }
     }
 
@@ -107,7 +107,7 @@ class Dashboard {
         button.textContent = '⏳ Refreshing...';
         button.disabled = true;
 
-        console.log('🔄 Manual refresh triggered');
+        // console.log('🔄 Manual refresh triggered');
 
         try {
             // Update both totals and orders
@@ -116,9 +116,9 @@ class Dashboard {
                 this.updateOrders()
             ]);
 
-            console.log('✅ Manual refresh complete');
+            // console.log('✅ Manual refresh complete');
         } catch (error) {
-            console.error('❌ Manual refresh failed:', error);
+            // console.error('❌ Manual refresh failed:', error);
         } finally {
             // Re-enable button
             setTimeout(() => {
@@ -143,7 +143,7 @@ class Dashboard {
 
             this.updateStatus('Connected', true);
         } catch (error) {
-            console.error('Failed to update totals:', error);
+            // console.error('Failed to update totals:', error);
             this.updateStatus('Connection Error', false);
         }
     }
@@ -200,7 +200,7 @@ class Dashboard {
             document.getElementById('ordersList').innerHTML = ordersHTML;
             this.updateStatus('Connected', true);
         } catch (error) {
-            console.error('Failed to update orders:', error);
+            // console.error('Failed to update orders:', error);
             this.updateStatus('Connection Error', false);
         }
     }
@@ -330,7 +330,7 @@ class Dashboard {
      * @param {string} message - Error message
      */
     showError(message) {
-        console.error('❌', message);
+        // console.error('❌', message);
 
         const ordersListEl = document.getElementById('ordersList');
         ordersListEl.innerHTML = `

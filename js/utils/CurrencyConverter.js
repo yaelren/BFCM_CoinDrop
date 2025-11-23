@@ -210,17 +210,17 @@ export function convertToUSD(amount, currency) {
       // First time seeing this currency
       UNKNOWN_CURRENCIES.add(currencyCode);
 
-      console.warn('═══════════════════════════════════════════════════');
-      console.warn('⚠️  NEW UNKNOWN CURRENCY DETECTED');
-      console.warn('═══════════════════════════════════════════════════');
-      console.warn(`Currency Code: "${currencyCode}"`);
-      console.warn(`Order Amount: ${amount} ${currencyCode}`);
-      console.warn(`Current Action: Using 1:1 USD conversion (${amount} ${currencyCode} = $${amount} USD)`);
-      console.warn(`Required Action: Add "${currencyCode}" to FIXED_RATES in js/utils/CurrencyConverter.js`);
-      console.warn('═══════════════════════════════════════════════════');
+      // console.warn('═══════════════════════════════════════════════════');
+      // console.warn('⚠️  NEW UNKNOWN CURRENCY DETECTED');
+      // console.warn('═══════════════════════════════════════════════════');
+      // console.warn(`Currency Code: "${currencyCode}"`);
+      // console.warn(`Order Amount: ${amount} ${currencyCode}`);
+      // console.warn(`Current Action: Using 1:1 USD conversion (${amount} ${currencyCode} = $${amount} USD)`);
+      // console.warn(`Required Action: Add "${currencyCode}" to FIXED_RATES in js/utils/CurrencyConverter.js`);
+      // console.warn('═══════════════════════════════════════════════════');
     } else {
       // Already seen before - brief warning
-      console.warn(`⚠️ Unknown currency "${currencyCode}" encountered (amount: ${amount})`);
+      // console.warn(`⚠️ Unknown currency "${currencyCode}" encountered (amount: ${amount})`);
     }
 
     // Fallback: treat as 1:1 with USD

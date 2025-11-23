@@ -43,10 +43,10 @@ export class WowVideoElement extends BaseElement {
     // Event listeners
     this.video.addEventListener('ended', () => this.onVideoEnded());
     this.video.addEventListener('loadeddata', () => {
-      console.log('WowVideoElement: Video loaded and ready');
+      // console.log('WowVideoElement: Video loaded and ready');
     });
     this.video.addEventListener('error', (e) => {
-      console.error('WowVideoElement: Video error', e);
+      // console.error('WowVideoElement: Video error', e);
     });
 
     container.appendChild(this.video);
@@ -55,7 +55,7 @@ export class WowVideoElement extends BaseElement {
   }
 
   onInit() {
-    console.log('WowVideoElement: Initializing...');
+    // console.log('WowVideoElement: Initializing...');
 
     // Override BaseElement's positioning to make this a fixed overlay
     if (this.container) {
@@ -81,11 +81,11 @@ export class WowVideoElement extends BaseElement {
    */
   play() {
     if (this.isPlaying) {
-      console.warn('WowVideoElement: Animation already playing');
+      // console.warn('WowVideoElement: Animation already playing');
       return;
     }
 
-    console.log('🎉 Starting WOW video playback');
+    // console.log('🎉 Starting WOW video playback');
 
     this.isPlaying = true;
 
@@ -101,7 +101,7 @@ export class WowVideoElement extends BaseElement {
 
     if (playPromise !== undefined) {
       playPromise.catch(error => {
-        console.error('WowVideoElement: Play failed', error);
+        // console.error('WowVideoElement: Play failed', error);
         this.isPlaying = false;
       });
     }
@@ -111,7 +111,7 @@ export class WowVideoElement extends BaseElement {
    * Called when video playback ends
    */
   onVideoEnded() {
-    console.log('🎉 WOW video playback complete');
+    // console.log('🎉 WOW video playback complete');
     this.stop();
   }
 
@@ -144,7 +144,7 @@ export class WowVideoElement extends BaseElement {
     if (this.video) {
       this.video.playbackRate = this.config.playbackRate;
     }
-    console.log(`WowVideoElement: Playback rate set to ${this.config.playbackRate}x`);
+    // console.log(`WowVideoElement: Playback rate set to ${this.config.playbackRate}x`);
   }
 
   /**

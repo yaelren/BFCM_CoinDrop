@@ -26,20 +26,20 @@ export class OrderQueueManager {
    */
   filterDuplicates(orderBatch) {
     if (!Array.isArray(orderBatch)) {
-      console.warn('Invalid order batch:', orderBatch);
+      // console.warn('Invalid order batch:', orderBatch);
       return [];
     }
 
     return orderBatch.filter(order => {
       // Validate order has ID
       if (!order.id) {
-        console.warn('Order missing ID, skipping:', order);
+        // console.warn('Order missing ID, skipping:', order);
         return false;
       }
 
       // Check if already processed
       if (this.processedOrderIds.has(order.id)) {
-        console.log(`Duplicate order filtered: ${order.id}`);
+        // console.log(`Duplicate order filtered: ${order.id}`);
         return false;
       }
 
@@ -62,7 +62,7 @@ export class OrderQueueManager {
       const toRemove = idsArray.slice(0, Math.floor(this.maxTrackedIds * 0.2));
       toRemove.forEach(id => this.processedOrderIds.delete(id));
 
-      console.log(`Trimmed ${toRemove.length} old order IDs from tracking`);
+      // console.log(`Trimmed ${toRemove.length} old order IDs from tracking`);
     }
   }
 
@@ -79,7 +79,7 @@ export class OrderQueueManager {
     const available = this.maxSize - this.queue.length;
 
     if (available <= 0) {
-      console.warn(`Queue full (${this.maxSize}), dropping ${orders.length} orders`);
+      // console.warn(`Queue full (${this.maxSize}), dropping ${orders.length} orders`);
       return 0;
     }
 
@@ -89,7 +89,7 @@ export class OrderQueueManager {
 
     // Warn if some were dropped
     if (orders.length > available) {
-      console.warn(`Queue overflow: ${orders.length - available} orders dropped`);
+      // console.warn(`Queue overflow: ${orders.length - available} orders dropped`);
     }
 
     return toAdd.length;
@@ -124,7 +124,7 @@ export class OrderQueueManager {
    */
   clear() {
     this.queue = [];
-    console.log('Queue cleared');
+    // console.log('Queue cleared');
   }
 
   /**

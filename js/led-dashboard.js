@@ -248,7 +248,7 @@ class LEDDashboard {
    * Initialize the dashboard
    */
   async init() {
-    console.log('🚀 Initializing LED Dashboard...');
+    // console.log('🚀 Initializing LED Dashboard...');
 
     try {
       // Create layout manager
@@ -267,12 +267,12 @@ class LEDDashboard {
       // this.loadDemoData();
 
       this.isInitialized = true;
-      console.log('✅ LED Dashboard initialized successfully');
+      // console.log('✅ LED Dashboard initialized successfully');
 
       // Instructions for user
       this.showInstructions();
     } catch (error) {
-      console.error('❌ Failed to initialize LED Dashboard:', error);
+      // console.error('❌ Failed to initialize LED Dashboard:', error);
     }
   }
 
@@ -397,7 +397,7 @@ class LEDDashboard {
     // Add location dot with city/country label
     this.elements.location.updateData(randomLocation);
 
-    console.log(`📦 New Order: ${randomStore} - $${newOrderValue} from ${randomLocation.city}, ${randomLocation.country}`);
+    // console.log(`📦 New Order: ${randomStore} - $${newOrderValue} from ${randomLocation.city}, ${randomLocation.country}`);
   }
 
   /**
@@ -405,7 +405,7 @@ class LEDDashboard {
    * PHASE I: Logging only (no element updates)
    */
   async initProcessingSystem() {
-    console.log('🔄 Initializing order processing system...');
+    // console.log('🔄 Initializing order processing system...');
 
     try {
       // Create API client
@@ -414,11 +414,11 @@ class LEDDashboard {
       // Test connection
       const connected = await this.api.testConnection();
       if (!connected) {
-        console.warn('⚠️ API unavailable, processing system disabled');
+        // console.warn('⚠️ API unavailable, processing system disabled');
         return;
       }
 
-      console.log('✅ API connection successful');
+      // console.log('✅ API connection successful');
 
       // Initialize counters from totals API
       await this.initializeCounters();
@@ -452,13 +452,13 @@ class LEDDashboard {
       this.totalsPoller.start();
       this.processor.start();
 
-      console.log('✅ Processing system started');
-      console.log('   - Orders polling: queue-based (fetches when empty)');
-      console.log('   - Totals polling: every 10 minutes');
-      console.log('   - Order display time: 3 seconds');
+      // console.log('✅ Processing system started');
+      // console.log('   - Orders polling: queue-based (fetches when empty)');
+      // console.log('   - Totals polling: every 10 minutes');
+      // console.log('   - Order display time: 3 seconds');
 
     } catch (error) {
-      console.error('❌ Failed to initialize processing system:', error);
+      // console.error('❌ Failed to initialize processing system:', error);
     }
   }
 
@@ -471,7 +471,7 @@ class LEDDashboard {
    */
   async initializeCounters() {
     try {
-      console.log('🔄 Initializing counters from API...');
+      // console.log('🔄 Initializing counters from API...');
       const totals = await this.api.fetchTotals();
       
       // Set initial values (use setValue for instant update, no animation)
@@ -487,31 +487,31 @@ class LEDDashboard {
         this.elements.onlineGPV.setValue(totals.gpv.online);
       }
       
-      console.log('✅ Counters initialized:', {
+      // console.log('✅ Counters initialized:', {
         totalOrders: totals.orders_count.online,
         totalSales: totals.gpv.online,
         onlineGPV: totals.gpv.online
       });
     } catch (error) {
-      console.error('❌ Failed to initialize counters:', error);
+      // console.error('❌ Failed to initialize counters:', error);
     }
   }
 
   reconcileTotals(totals) {
-    console.log('═════════════════════════════════════════════════════');
-    console.log('📊 TOTALS API RECONCILIATION');
-    console.log('═════════════════════════════════════════════════════');
+    // console.log('═════════════════════════════════════════════════════');
+    // console.log('📊 TOTALS API RECONCILIATION');
+    // console.log('═════════════════════════════════════════════════════');
     
     // Total Orders (TextElement uses currentValue, not targetValue)
     if (this.elements.totalOrders) {
       const localOrders = this.elements.totalOrders.currentValue || 0;
       const apiOrders = totals.orders_count.online;
       if (localOrders !== apiOrders) {
-        console.log(`⚠️ Orders drift detected: Local=${localOrders}, API=${apiOrders}`);
-        console.log(`   Correcting to ${apiOrders}...`);
+        // console.log(`⚠️ Orders drift detected: Local=${localOrders}, API=${apiOrders}`);
+        // console.log(`   Correcting to ${apiOrders}...`);
         this.elements.totalOrders.updateData(apiOrders);
       } else {
-        console.log(`✅ Orders in sync: ${apiOrders}`);
+        // console.log(`✅ Orders in sync: ${apiOrders}`);
       }
     }
     
@@ -520,11 +520,11 @@ class LEDDashboard {
       const localSales = this.elements.totalSales.targetValue || 0;
       const apiSales = totals.gpv.online;
       if (Math.abs(localSales - apiSales) > 0.01) {  // Allow for rounding
-        console.log(`⚠️ Sales drift detected: Local=$${localSales.toFixed(2)}, API=$${apiSales.toFixed(2)}`);
-        console.log(`   Correcting to $${apiSales.toFixed(2)}...`);
+        // console.log(`⚠️ Sales drift detected: Local=$${localSales.toFixed(2)}, API=$${apiSales.toFixed(2)}`);
+        // console.log(`   Correcting to $${apiSales.toFixed(2)}...`);
         this.elements.totalSales.updateData(apiSales);
       } else {
-        console.log(`✅ Sales in sync: $${apiSales.toFixed(2)}`);
+        // console.log(`✅ Sales in sync: $${apiSales.toFixed(2)}`);
       }
     }
     
@@ -533,15 +533,15 @@ class LEDDashboard {
       const localGPV = this.elements.onlineGPV.currentValue || 0;
       const apiGPV = totals.gpv.online;
       if (Math.abs(localGPV - apiGPV) > 0.01) {  // Allow for rounding
-        console.log(`⚠️ Online GPV drift detected: Local=$${localGPV.toFixed(2)}, API=$${apiGPV.toFixed(2)}`);
-        console.log(`   Correcting to $${apiGPV.toFixed(2)}...`);
+        // console.log(`⚠️ Online GPV drift detected: Local=$${localGPV.toFixed(2)}, API=$${apiGPV.toFixed(2)}`);
+        // console.log(`   Correcting to $${apiGPV.toFixed(2)}...`);
         this.elements.onlineGPV.updateData(apiGPV);
       } else {
-        console.log(`✅ Online GPV in sync: $${apiGPV.toFixed(2)}`);
+        // console.log(`✅ Online GPV in sync: $${apiGPV.toFixed(2)}`);
       }
     }
     
-    console.log('═════════════════════════════════════════════════════');
+    // console.log('═════════════════════════════════════════════════════');
   }
 
   /**
@@ -590,7 +590,7 @@ class LEDDashboard {
    * Show usage instructions in console
    */
   showInstructions() {
-    console.log(`
+    // console.log(`
 ╔═══════════════════════════════════════════════════════════════╗
 ║            LED Dashboard - Usage Instructions                 ║
 ╠═══════════════════════════════════════════════════════════════╣

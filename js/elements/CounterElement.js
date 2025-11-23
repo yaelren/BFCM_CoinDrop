@@ -89,7 +89,7 @@ export class CounterElement extends BaseElement {
    */
   updateData(newValue) {
     if (typeof newValue !== 'number') {
-      console.warn(`CounterElement ${this.id}: Invalid value type`, newValue);
+      // console.warn(`CounterElement ${this.id}: Invalid value type`, newValue);
       return;
     }
 

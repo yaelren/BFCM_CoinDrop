@@ -43,7 +43,7 @@ export function toCQW(designPixels) {
 export function getScaleFactor(dashboardElement = null) {
   const dashboard = dashboardElement || document.querySelector('.led-dashboard');
   if (!dashboard) {
-    console.warn('Dashboard element not found, using scale factor 1');
+    // console.warn('Dashboard element not found, using scale factor 1');
     return 1;
   }
 
@@ -104,7 +104,7 @@ export function createResponsiveStyles(config) {
 export function logScaleInfo() {
   const dashboard = document.querySelector('.led-dashboard');
   if (!dashboard) {
-    console.log('Dashboard not found');
+    // console.log('Dashboard not found');
     return;
   }
 
@@ -112,10 +112,10 @@ export function logScaleInfo() {
   const height = dashboard.offsetHeight;
   const scale = getScaleFactor(dashboard);
 
-  console.log('=== Responsive Scale Info ===');
-  console.log(`Reference: ${REFERENCE_WIDTH}px × ${REFERENCE_HEIGHT}px`);
-  console.log(`Current: ${width.toFixed(0)}px × ${height.toFixed(0)}px`);
-  console.log(`Scale Factor: ${scale.toFixed(4)}`);
-  console.log(`Example: 32px design = ${toActualPixels(32, dashboard).toFixed(2)}px actual`);
-  console.log('=============================');
+  // console.log('=== Responsive Scale Info ===');
+  // console.log(`Reference: ${REFERENCE_WIDTH}px × ${REFERENCE_HEIGHT}px`);
+  // console.log(`Current: ${width.toFixed(0)}px × ${height.toFixed(0)}px`);
+  // console.log(`Scale Factor: ${scale.toFixed(4)}`);
+  // console.log(`Example: 32px design = ${toActualPixels(32, dashboard).toFixed(2)}px actual`);
+  // console.log('=============================');
 }

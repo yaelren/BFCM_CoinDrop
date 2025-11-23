@@ -250,8 +250,8 @@ export class MapElement extends BaseElement {
           y: relativeY
         });
 
-        console.log(`✓ Calibrated ${point.name} at relative coords (${point.x}, ${point.y})`);
-        console.log(`  Total calibration points: ${this.calibrationPoints.length}`);
+        // console.log(`✓ Calibrated ${point.name} at relative coords (${point.x}, ${point.y})`);
+        // console.log(`  Total calibration points: ${this.calibrationPoints.length}`);
 
         // Auto-deselect city
         this.selectedCalibrationCity = null;
@@ -621,15 +621,15 @@ export class MapElement extends BaseElement {
     this.calibrationMode = enabled;
 
     if (enabled) {
-      console.log('\n🗺️ MAP CALIBRATION MODE ENABLED');
-      console.log('═══════════════════════════════════════════════════');
-      console.log('1. Select a city from the GUI dropdown');
-      console.log('2. Click on the map where that city is located');
-      console.log('3. Repeat for at least 2 cities (more = better)');
-      console.log('4. Copy the generated config from console');
-      console.log('═══════════════════════════════════════════════════\n');
+      // console.log('\n🗺️ MAP CALIBRATION MODE ENABLED');
+      // console.log('═══════════════════════════════════════════════════');
+      // console.log('1. Select a city from the GUI dropdown');
+      // console.log('2. Click on the map where that city is located');
+      // console.log('3. Repeat for at least 2 cities (more = better)');
+      // console.log('4. Copy the generated config from console');
+      // console.log('═══════════════════════════════════════════════════\n');
     } else {
-      console.log('🗺️ Calibration mode disabled');
+      // console.log('🗺️ Calibration mode disabled');
       this.resetCalibration();
     }
   }
@@ -640,7 +640,7 @@ export class MapElement extends BaseElement {
   selectCalibrationCity(cityName) {
     this.selectedCalibrationCity = this.calibrationCities.find(c => c.name === cityName);
     if (this.selectedCalibrationCity) {
-      console.log(`📍 Selected: ${cityName} - Click on the map where this city is located`);
+      // console.log(`📍 Selected: ${cityName} - Click on the map where this city is located`);
     }
   }
 
@@ -651,7 +651,7 @@ export class MapElement extends BaseElement {
     this.calibrationPoints = [];
     this.calibrationMarkers = [];
     this.selectedCalibrationCity = null;
-    console.log('🔄 Calibration points reset');
+    // console.log('🔄 Calibration points reset');
   }
 
   /**
@@ -659,7 +659,7 @@ export class MapElement extends BaseElement {
    */
   generateCalibrationConfig() {
     if (this.calibrationPoints.length < 2) {
-      console.warn('⚠️ Need at least 2 calibration points');
+      // console.warn('⚠️ Need at least 2 calibration points');
       return;
     }
 
@@ -687,7 +687,7 @@ ${pointsCode}
 
 ═══════════════════════════════════════════════════════════════`;
 
-    console.log(config);
+    // console.log(config);
   }
 
   /**

@@ -87,7 +87,7 @@ class BackgroundAnimation {
             framesToLoad.push(i);
         }
         
-        console.log(`Loading ${framesToLoad.length} frames (every ${this.frameStep} frame${this.frameStep > 1 ? 's' : ''})...`);
+        // console.log(`Loading ${framesToLoad.length} frames (every ${this.frameStep} frame${this.frameStep > 1 ? 's' : ''})...`);
         
         // Load in batches for better performance
         let currentBatch = 0;
@@ -96,7 +96,7 @@ class BackgroundAnimation {
             const end = Math.min(start + this.preloadBatchSize, framesToLoad.length);
             
             if (start >= framesToLoad.length) {
-                console.log(`Background animation ready: ${this.loadedFrames.size} frames loaded`);
+                // console.log(`Background animation ready: ${this.loadedFrames.size} frames loaded`);
                 this.play();
                 return;
             }
@@ -116,7 +116,7 @@ class BackgroundAnimation {
                     
                     // Start playing after first batch loads
                     if (currentBatch === 0 && batchLoaded === batchSize) {
-                        console.log('First batch loaded, starting animation...');
+                        // console.log('First batch loaded, starting animation...');
                         this.play();
                     }
                     
@@ -127,7 +127,7 @@ class BackgroundAnimation {
                 };
                 
                 img.onerror = () => {
-                    console.warn(`Failed to load frame ${frameIndex}`);
+                    // console.warn(`Failed to load frame ${frameIndex}`);
                     batchLoaded++;
                     if (batchLoaded === batchSize) {
                         currentBatch++;
@@ -252,7 +252,7 @@ class BackgroundAnimation {
     
     setFrameStep(step) {
         this.frameStep = Math.max(1, Math.floor(step));
-        console.log(`Frame step set to ${this.frameStep} (using every ${this.frameStep}${this.frameStep === 1 ? 'st' : this.frameStep === 2 ? 'nd' : 'th'} frame)`);
+        // console.log(`Frame step set to ${this.frameStep} (using every ${this.frameStep}${this.frameStep === 1 ? 'st' : this.frameStep === 2 ? 'nd' : 'th'} frame)`);
     }
     
     jumpToFrame(frameNumber) {

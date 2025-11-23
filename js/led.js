@@ -20,7 +20,7 @@ class LEDDashboard {
      * Initialize the LED dashboard
      */
     async init() {
-        console.log('🚀 Initializing LED Dashboard...');
+        // console.log('🚀 Initializing LED Dashboard...');
 
         // Test API connection
         const connected = await api.testConnection();
@@ -40,7 +40,7 @@ class LEDDashboard {
         this.updateLastUpdate();
         setInterval(() => this.updateLastUpdate(), 1000);
 
-        console.log('✅ LED Dashboard initialized');
+        // console.log('✅ LED Dashboard initialized');
     }
 
     /**
@@ -55,7 +55,7 @@ class LEDDashboard {
             await this.updateOrders();
         }, this.pollingFrequency.orders);
 
-        console.log('🔄 LED Polling started');
+        // console.log('🔄 LED Polling started');
     }
 
     /**
@@ -68,7 +68,7 @@ class LEDDashboard {
         if (this.pollingIntervals.orders) {
             clearInterval(this.pollingIntervals.orders);
         }
-        console.log('⏸️ LED Polling stopped');
+        // console.log('⏸️ LED Polling stopped');
     }
 
     /**
@@ -83,7 +83,7 @@ class LEDDashboard {
             this.animateValue('ledAvgOrder', data.aov, false, true);
 
         } catch (error) {
-            console.error('Failed to update LED totals:', error);
+            // console.error('Failed to update LED totals:', error);
         }
     }
 
@@ -133,7 +133,7 @@ class LEDDashboard {
             this.renderOrders();
 
         } catch (error) {
-            console.error('Failed to update LED orders:', error);
+            // console.error('Failed to update LED orders:', error);
         }
     }
 
@@ -250,7 +250,7 @@ class LEDDashboard {
      * Show error message
      */
     showError(message) {
-        console.error('❌', message);
+        // console.error('❌', message);
         const ticker = document.getElementById('ledOrdersTicker');
         ticker.innerHTML = `
             <div class="loading" style="color: #ff0080;">

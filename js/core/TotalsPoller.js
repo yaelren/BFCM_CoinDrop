@@ -27,11 +27,11 @@ export class TotalsPoller {
    */
   start() {
     if (this.isRunning) {
-      console.warn('Totals poller already running');
+      // console.warn('Totals poller already running');
       return;
     }
 
-    console.log('📊 Starting totals polling (10min interval)');
+    // console.log('📊 Starting totals polling (10min interval)');
     this.isRunning = true;
 
     // Immediate first fetch
@@ -49,7 +49,7 @@ export class TotalsPoller {
   stop() {
     if (!this.isRunning) return;
 
-    console.log('Stopping totals polling');
+    // console.log('Stopping totals polling');
     this.isRunning = false;
 
     if (this.intervalId) {
@@ -69,12 +69,12 @@ export class TotalsPoller {
 
       // Validate structure
       if (!totals.orders_count || !totals.gpv) {
-        console.error('Invalid totals structure:', totals);
+        // console.error('Invalid totals structure:', totals);
         return;
       }
 
       // Log received totals
-      console.log('📊 Totals API response:', {
+      // console.log('📊 Totals API response:', {
         totalOrders: totals.orders_count.total,
         onlineOrders: totals.orders_count.online,
         totalGPV: `$${totals.gpv.total.toFixed(2)}`,
@@ -86,7 +86,7 @@ export class TotalsPoller {
       this.reconciliationCallback(totals);
 
     } catch (error) {
-      console.error('❌ Totals fetch failed:', error);
+      // console.error('❌ Totals fetch failed:', error);
       this.onError(error);
     }
   }

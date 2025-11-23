@@ -15,7 +15,7 @@ export class LayoutManager {
     this.controlsGUI = null;
     this.guiFolders = new Map();
     this.debugModeEnabled = false;
-    this.guiVisible = true;
+    this.guiVisible = false; // Hidden by default, toggle with 'G' key
 
     if (!this.container) {
       throw new Error(`Container "${containerSelector}" not found`);
@@ -120,7 +120,7 @@ export class LayoutManager {
       this.guiVisible = !this.guiVisible;
       this.toggleGUIVisibility(this.guiVisible);
       
-      console.log(`GUI ${this.guiVisible ? 'shown' : 'hidden'}`);
+      // console.log(`GUI ${this.guiVisible ? 'shown' : 'hidden'}`);
     }
   }
 
@@ -155,6 +155,9 @@ export class LayoutManager {
 
     // GUI 2: Element Controls
     this.setupControlsGUI(GUI);
+
+    // Apply initial visibility state (hidden by default)
+    this.toggleGUIVisibility(this.guiVisible);
   }
 
   /**
@@ -998,7 +1001,7 @@ export class LayoutManager {
    * Log all element configurations (element-specific settings only)
    */
   logAllConfigs() {
-    console.log('\n=== LED Dashboard Element Configurations ===\n');
+    // console.log('\n=== LED Dashboard Element Configurations ===\n');
 
     const configs = {};
     this.elements.forEach(element => {
@@ -1006,19 +1009,19 @@ export class LayoutManager {
       configs[element.id] = { ...config };
     });
 
-    console.log(JSON.stringify(configs, null, 2));
+    // console.log(JSON.stringify(configs, null, 2));
 
     // Log animation timing settings
     if (this.orderProcessor) {
-      console.log('\n=== Animation Timing Settings ===\n');
-      console.log(JSON.stringify({
+      // console.log('\n=== Animation Timing Settings ===\n');
+      // console.log(JSON.stringify({
         minDisplayTime: this.orderProcessor.config.minDisplayTime,
         saleToPlinkDelay: this.orderProcessor.config.saleToPlinkDelay,
         plinkoToCountersDelay: this.orderProcessor.config.plinkoToCountersDelay
       }, null, 2));
     }
 
-    console.log('\n=== Copy and paste above ===\n');
+    // console.log('\n=== Copy and paste above ===\n');
   }
 
   /**
@@ -1028,11 +1031,11 @@ export class LayoutManager {
     const wowElement = this.elements.get('wowAnimation');
     
     if (!wowElement) {
-      console.warn('WOW Animation element not found');
+      // console.warn('WOW Animation element not found');
       return;
     }
 
-    console.log('🎉 Triggering WOW animation...');
+    // console.log('🎉 Triggering WOW animation...');
     wowElement.play();
   }
 
@@ -1040,8 +1043,8 @@ export class LayoutManager {
    * Log all element positions to console for hardcoding
    */
   logAllPositions() {
-    console.log('=== LED Dashboard Element Positions ===');
-    console.log(`Reference Resolution: ${this.referenceWidth}x${this.referenceHeight}\n`);
+    // console.log('=== LED Dashboard Element Positions ===');
+    // console.log(`Reference Resolution: ${this.referenceWidth}x${this.referenceHeight}\n`);
 
     const positions = {};
     this.elements.forEach(element => {
@@ -1069,8 +1072,8 @@ export class LayoutManager {
       delete positions[element.id].config.background;
     });
 
-    console.log(JSON.stringify(positions, null, 2));
-    console.log('\n=== Copy and paste above into your config ===');
+    // console.log(JSON.stringify(positions, null, 2));
+    // console.log('\n=== Copy and paste above into your config ===');
   }
 
   /**

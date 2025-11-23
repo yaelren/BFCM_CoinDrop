@@ -42,11 +42,11 @@ export class OrderProcessor {
    */
   start() {
     if (this.isProcessing) {
-      console.warn('Processor already running');
+      // console.warn('Processor already running');
       return;
     }
 
-    console.log('🎯 Starting order processor');
+    // console.log('🎯 Starting order processor');
     this.isProcessing = true;
     this.processNext();
   }
@@ -55,7 +55,7 @@ export class OrderProcessor {
    * Stop processing loop
    */
   stop() {
-    console.log('Stopping order processor');
+    // console.log('Stopping order processor');
     this.isProcessing = false;
 
     if (this.processingTimeoutId) {
@@ -86,7 +86,7 @@ export class OrderProcessor {
     const order = this.queueManager.dequeue();
     this.state.currentOrder = order;
 
-    console.log(`🎯 Processing order ${order.id} (queue: ${this.queueManager.size()} remaining)`);
+    // console.log(`🎯 Processing order ${order.id} (queue: ${this.queueManager.size()} remaining)`);
 
     try {
       // Process order
@@ -100,7 +100,7 @@ export class OrderProcessor {
       this.state.lastProcessedTime = new Date();
 
     } catch (error) {
-      console.error('❌ Order processing failed:', error, order);
+      // console.error('❌ Order processing failed:', error, order);
       this.state.errorCount++;
       // Continue anyway (don't halt entire pipeline)
     }
@@ -121,7 +121,7 @@ export class OrderProcessor {
     // 1. Parse amount (convert string to number)
     const amount = parseFloat(order.amount);
     if (isNaN(amount)) {
-      console.error('Invalid amount:', order.amount);
+      // console.error('Invalid amount:', order.amount);
       return;
     }
 
@@ -130,7 +130,7 @@ export class OrderProcessor {
 
     // Skip orders with $0 value
     if (usdAmount === 0) {
-      console.log(`⏭️  Skipping order ${order.id}: $0 USD value`);
+      // console.log(`⏭️  Skipping order ${order.id}: $0 USD value`);
       return;
     }
 
@@ -140,19 +140,19 @@ export class OrderProcessor {
     // 4. Extract data
     const location = `${order.location.city || 'Unknown'}, ${order.location.country || 'Unknown'}`;
     const businessName = order.metadata?.business_name || 'N/A';    console.log(`🔍 Extracted business name: "${businessName}"`);
-    console.log(`🔍 Order metadata:`, order.metadata);
+    // console.log(`🔍 Order metadata:`, order.metadata);
 
     // Log processing details with emphasis on amount and coins
-    console.log('═════════════════════════════════════════════════════');
-    console.log(`🎯 ORDER: ${order.id}`);
-    console.log(`   ${businessName} (${location})`);
-    console.log(`   %c${order.currency} ${order.amount} → $${usdAmount} USD`, 'font-weight: bold; font-size: 14px; color: #4CAF50');
-    console.log(`   %cCoins: ${tens}×$10 + ${ones}×$1 = ${tens + ones} TOTAL`, 'font-weight: bold; font-size: 14px; color: #FF9800');
-    console.log('═════════════════════════════════════════════════════');
+    // console.log('═════════════════════════════════════════════════════');
+    // console.log(`🎯 ORDER: ${order.id}`);
+    // console.log(`   ${businessName} (${location})`);
+    // console.log(`   %c${order.currency} ${order.amount} → $${usdAmount} USD`, 'font-weight: bold; font-size: 14px; color: #4CAF50');
+    // console.log(`   %cCoins: ${tens}×$10 + ${ones}×$1 = ${tens + ones} TOTAL`, 'font-weight: bold; font-size: 14px; color: #FF9800');
+    // console.log('═════════════════════════════════════════════════════');
 
     // Trigger WOW animation for high-value orders
     if (usdAmount >= this.config.wowTriggerAmount) {
-      console.log(`🎉 HIGH VALUE ORDER ($${this.config.wowTriggerAmount}+) - TRIGGERING WOW ANIMATION!`);
+      // console.log(`🎉 HIGH VALUE ORDER ($${this.config.wowTriggerAmount}+) - TRIGGERING WOW ANIMATION!`);
       this.triggerWowAnimation();
     }
 
@@ -242,13 +242,13 @@ export class OrderProcessor {
   dropCoins(tens, ones) {
     const plinkoElement = this.dashboard.elements.plinko;
     if (!plinkoElement) {
-      console.warn('Plinko element not found');
+      // console.warn('Plinko element not found');
       return;
     }
 
     const sketch = plinkoElement.getSketch();
     if (!sketch || !sketch.dropCoins) {
-      console.warn('Plinko dropCoins method not available');
+      // console.warn('Plinko dropCoins method not available');
       return;
     }
 
@@ -261,14 +261,14 @@ export class OrderProcessor {
   triggerWowAnimation() {
     const wowElement = this.dashboard.elements.wowAnimation;
     if (!wowElement) {
-      console.warn('WOW animation element not found');
+      // console.warn('WOW animation element not found');
       return;
     }
 
     if (typeof wowElement.play === 'function') {
       wowElement.play();
     } else {
-      console.warn('WOW animation play method not available');
+      // console.warn('WOW animation play method not available');
     }
   }
 

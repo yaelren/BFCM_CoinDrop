@@ -36,7 +36,7 @@ class BFCMApi {
             this.lastUpdate = new Date();
             this.errorCount = 0;
 
-            console.log('✅ Totals fetched:', data);
+            // console.log('✅ Totals fetched:', data);
             return data;
         } catch (error) {
             this.handleError('fetchTotals', error);
@@ -66,7 +66,7 @@ class BFCMApi {
             this.lastUpdate = new Date();
             this.errorCount = 0;
 
-            console.log(`✅ Orders fetched: ${data.length} orders`);
+            // console.log(`✅ Orders fetched: ${data.length} orders`);
             return data;
         } catch (error) {
             this.handleError('fetchOrders', error);
@@ -92,7 +92,7 @@ class BFCMApi {
             }
 
             const data = await response.json();
-            console.log(`✅ Stores fetched: ${data.length} stores`);
+            // console.log(`✅ Stores fetched: ${data.length} stores`);
             return data;
         } catch (error) {
             this.handleError('fetchStores', error);
@@ -118,7 +118,7 @@ class BFCMApi {
             }
 
             const data = await response.json();
-            console.log(`✅ Products fetched: ${data.length} products`);
+            // console.log(`✅ Products fetched: ${data.length} products`);
             return data;
         } catch (error) {
             this.handleError('fetchProducts', error);
@@ -144,11 +144,11 @@ class BFCMApi {
             }
 
             this.isConnected = true;
-            console.log('✅ API Connection successful');
+            // console.log('✅ API Connection successful');
             return true;
         } catch (error) {
             this.isConnected = false;
-            console.error('❌ API Connection failed:', error);
+            // console.error('❌ API Connection failed:', error);
             return false;
         }
     }
@@ -162,10 +162,10 @@ class BFCMApi {
         this.errorCount++;
         this.isConnected = false;
 
-        console.error(`❌ API Error [${endpoint}]:`, error.message);
+        // console.error(`❌ API Error [${endpoint}]:`, error.message);
 
         if (this.errorCount >= this.maxRetries) {
-            console.error(`⚠️ Max retries (${this.maxRetries}) reached for ${endpoint}`);
+            // console.error(`⚠️ Max retries (${this.maxRetries}) reached for ${endpoint}`);
         }
     }
 

@@ -34,7 +34,7 @@ export function calculateCoins(usdAmount) {
     // Distribute max coins: prioritize $10 coins
     tens = Math.min(tens, Math.floor(MAX_TOTAL_COINS * 0.9));
     ones = MAX_TOTAL_COINS - tens;
-    console.log(`⚠️ Coin drop capped: $${dollars} would drop ${totalCoins} coins, capped to ${MAX_TOTAL_COINS}`);
+    // console.log(`⚠️ Coin drop capped: $${dollars} would drop ${totalCoins} coins, capped to ${MAX_TOTAL_COINS}`);
   }
 
   return { tens, ones };
