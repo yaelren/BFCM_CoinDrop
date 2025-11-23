@@ -149,7 +149,7 @@ const ELEMENT_CONFIGS = {
   totalSales: {
     type: 'counter',
     x: 1659,
-    y: 315,
+    y: 323,
     width: 1022,
     height: 224,
     visible: true,
@@ -189,7 +189,7 @@ const ELEMENT_CONFIGS = {
   sale: {
     type: 'slotMachine',
     x: 3650,
-    y: 1155,
+    y: 1167,
     width: 461,
     height: 149,
     visible: true,
@@ -212,7 +212,7 @@ const ELEMENT_CONFIGS = {
   onlineGPV: {
     type: 'text',
     x: 3408,
-    y: 1548,
+    y: 1543,
     width: 542,
     height: 104,
     visible: true,
