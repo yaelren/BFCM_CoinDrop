@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aspect Ratio Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: monospace;
+            background: #1a1a2e;
+            color: white;
+            padding: 20px;
+        }
+
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #4facfe;
+        }
+
+        .info-panel {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #4facfe;
+        }
+
+        .value {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .mode-indicator {
+            font-size: 2em;
+            text-align: center;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-ultrawide {
+            background: rgba(156, 39, 176, 0.2);
+            border: 2px solid #9C27B0;
+        }
+
+        .mode-standard {
+            background: rgba(33, 150, 243, 0.2);
+            border: 2px solid #2196F3;
+        }
+
+        .preview-box {
+            aspect-ratio: 4640 / 1760;
+            width: 100%;
+            background: #000;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #4facfe;
+            border-radius: 10px;
+        }
+
+        .preview-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Ultrawide video - always visible as base */
+        .preview-video.ultrawide {
+            z-index: 1;
+            opacity: 1;
+        }
+
+        /* Standard video - overlay on top when active */
+        .preview-video.standard {
+            z-index: 2;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .preview-video.standard.active {
+            opacity: 1;
+        }
+
+        .preview-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            z-index: 3;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .preview-overlay.active {
+            opacity: 1;
+        }
+
+        .instructions {
+            background: rgba(255, 152, 0, 0.1);
+            border: 2px solid #FF9800;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .instructions h3 {
+            color: #FF9800;
+            margin-bottom: 10px;
+        }
+
+        .instructions ul {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔍 Aspect Ratio Detection Test</h1>
+
+        <div class="mode-indicator" id="modeIndicator">
+            <div>Current Mode: <span id="currentMode">Detecting...</span></div>
+        </div>
+
+        <div class="info-panel">
+            <div class="info-row">
+                <span class="label">Viewport Width:</span>
+                <span class="value" id="viewportWidth">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Viewport Height:</span>
+                <span class="value" id="viewportHeight">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Viewport Ratio:</span>
+                <span class="value" id="viewportRatio">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Ultrawide Target (4640:1760):</span>
+                <span class="value">2.636</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Standard Target (16:9):</span>
+                <span class="value">1.778</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Distance to Ultrawide:</span>
+                <span class="value" id="ultrawideDistance">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Distance to Standard:</span>
+                <span class="value" id="standardDistance">-</span>
+            </div>
+        </div>
+
+        <h2>Preview (Simulated Dashboard):</h2>
+        <div class="preview-box">
+            <video class="preview-video ultrawide" id="ultrawideVideo" autoplay loop muted playsinline>
+                <source src="assets/Animated_Bord.mp4" type="video/mp4">
+            </video>
+            <video class="preview-video standard" id="standardVideo" autoplay loop muted playsinline>
+                <source src="assets/16-9 Screen.mp4" type="video/mp4">
+            </video>
+            <img src="assets/16-9-dropshadow.png" class="preview-overlay" id="standardOverlay" alt="Drop shadow">
+        </div>
+
+        <div class="instructions">
+            <h3>📝 Testing Instructions:</h3>
+            <ul>
+                <li>Resize your browser window to test different aspect ratios</li>
+                <li><strong>Ultrawide mode:</strong> Only the base ultrawide animated border video is visible</li>
+                <li><strong>Standard mode:</strong> The 16:9 video and drop shadow appear ON TOP of the base video</li>
+                <li>The ultrawide base video is ALWAYS playing underneath</li>
+                <li>Watch the "Current Mode" indicator and preview box change as you resize</li>
+                <li>The distance values show how close you are to each target ratio</li>
+            </ul>
+        </div>
+    </div>
+
+    <script type="module">
+        import { aspectRatioManager } from './js/utils/AspectRatioManager.js';
+
+        // Elements
+        const modeIndicator = document.getElementById('modeIndicator');
+        const currentModeEl = document.getElementById('currentMode');
+        const viewportWidthEl = document.getElementById('viewportWidth');
+        const viewportHeightEl = document.getElementById('viewportHeight');
+        const viewportRatioEl = document.getElementById('viewportRatio');
+        const ultrawideDistanceEl = document.getElementById('ultrawideDistance');
+        const standardDistanceEl = document.getElementById('standardDistance');
+
+        const ultrawideVideo = document.getElementById('ultrawideVideo');
+        const standardVideo = document.getElementById('standardVideo');
+        const standardOverlay = document.getElementById('standardOverlay');
+
+        // Initialize aspect ratio manager
+        aspectRatioManager.init((mode) => {
+            const debugInfo = aspectRatioManager.getDebugInfo();
+
+            // Update UI
+            currentModeEl.textContent = mode.toUpperCase();
+            viewportWidthEl.textContent = debugInfo.viewportWidth + 'px';
+            viewportHeightEl.textContent = debugInfo.viewportHeight + 'px';
+            viewportRatioEl.textContent = debugInfo.viewportRatio;
+            ultrawideDistanceEl.textContent = debugInfo.ultrawideDistance;
+            standardDistanceEl.textContent = debugInfo.standardDistance;
+
+            // Update mode indicator style
+            modeIndicator.className = 'mode-indicator mode-' + mode;
+
+            // Update preview visibility
+            // Ultrawide video is always visible as base
+            // In standard mode, the 16:9 video and overlay appear ON TOP
+            if (mode === 'ultrawide') {
+                standardVideo.classList.remove('active');
+                standardOverlay.classList.remove('active');
+            } else {
+                standardVideo.classList.add('active');
+                standardOverlay.classList.add('active');
+            }
+
+            console.log('📐 Mode changed to:', mode, debugInfo);
+        });
+
+        // Play videos
+        setTimeout(() => {
+            ultrawideVideo.play().catch(e => console.log('Ultrawide video autoplay blocked'));
+            standardVideo.play().catch(e => console.log('Standard video autoplay blocked'));
+        }, 100);
+    </script>
+</body>
+</html>

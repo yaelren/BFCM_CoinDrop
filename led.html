@@ -11,8 +11,22 @@
 </head>
 <body>
     <div class="led-dashboard" id="led-dashboard">
-        <!-- Animated video background -->
-        <video class="led-background-video"
+        <!-- Standard 16:9 strips video (rendered first, z-index -1) -->
+        <video class="led-background-video led-background-standard"
+               id="standard-video"
+               autoplay
+               loop
+               muted
+               playsinline
+               webkit-playsinline
+               onloadedmetadata="this.muted = true"
+               preload="auto">
+            <source src="assets/16-9-Screen.mp4" type="video/mp4">
+        </video>
+
+        <!-- Ultrawide animated video background (rendered second, z-index -2) -->
+        <video class="led-background-video led-background-ultrawide"
+               id="ultrawide-video"
                autoplay
                loop
                muted
@@ -22,6 +36,12 @@
                preload="auto">
             <source src="assets/Animated_Bord.mp4" type="video/mp4">
         </video>
+
+        <!-- Standard 16:9 drop shadow overlay -->
+        <!-- <img src="assets/16-9-dropshadow.png"
+             class="led-dropshadow-overlay led-background-standard"
+             id="standard-dropshadow"
+             alt="Drop shadow overlay"> -->
 
         <!-- Pins overlay - stretches over entire background -->
         <img src="assets/Pins.png" class="led-pins-overlay" alt="Pins overlay">

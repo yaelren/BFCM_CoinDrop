@@ -21,6 +21,9 @@ import { OrderPoller } from './core/OrderPoller.js';
 import { TotalsPoller } from './core/TotalsPoller.js';
 import { OrderProcessor } from './core/OrderProcessor.js';
 
+// Aspect ratio management
+import { aspectRatioManager } from './utils/AspectRatioManager.js';
+
 // Element configurations with default positions
 // TODO: Replace with your measured positions after using GUI
 const ELEMENT_CONFIGS = {
@@ -650,13 +653,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Expose to window for debugging
   window.dashboard = dashboard;
 
-  // Ensure video plays (Arc browser compatibility)
+  // Initialize aspect ratio detection and background switching
+  const dashboardElement = document.getElementById('led-dashboard');
+
+  aspectRatioManager.init((mode) => {
+    // Update dashboard data attribute to control CSS visibility
+    dashboardElement.setAttribute('data-aspect-mode', mode);
+
+    // Debug info (uncomment to see aspect ratio changes)
+    // const debugInfo = aspectRatioManager.getDebugInfo();
+    // console.log('📐 Aspect ratio changed:', debugInfo);
+  });
+
+  // Ensure videos play (Arc browser compatibility)
   // Use setTimeout to prevent blocking dashboard initialization
   setTimeout(() => {
-    const video = document.querySelector('.led-background-video');
-    if (video) {
+    const videos = document.querySelectorAll('.led-background-video');
+    videos.forEach(video => {
       video.play().catch(e => console.log('Video autoplay blocked:', e.message));
-    }
+    });
   }, 100);
 });
 
