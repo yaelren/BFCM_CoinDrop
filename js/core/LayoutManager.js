@@ -769,6 +769,34 @@ export class LayoutManager {
         }, 'generate')
           .name('📋 Generate Config');
 
+        // Ambient Random Dots Controls
+        const ambientFolder = folder.addFolder('✨ Ambient Dots');
+
+        ambientFolder.add(element.ambientDots, 'enabled')
+          .name('Enable')
+          .onChange((enabled) => element.setAmbientDotsEnabled(enabled));
+
+        ambientFolder.add(element.ambientDots, 'minDots', 1, 20, 1)
+          .name('Min Dots');
+
+        ambientFolder.add(element.ambientDots, 'maxDots', 1, 200, 1)
+          .name('Max Dots');
+
+        ambientFolder.add(element.ambientDots, 'dotSize', 2, 30, 1)
+          .name('Dot Size');
+
+        ambientFolder.addColor(element.ambientDots, 'dotColor')
+          .name('Dot Color');
+
+        ambientFolder.add(element.ambientDots, 'minInterval', 100, 5000, 100)
+          .name('Min Spawn Interval (ms)');
+
+        ambientFolder.add(element.ambientDots, 'maxInterval', 100, 10000, 100)
+          .name('Max Spawn Interval (ms)');
+
+        ambientFolder.add(element.ambientDots, 'fadeDuration', 500, 10000, 100)
+          .name('Fade Duration (ms)');
+
         // Location Label Controls
         const labelFolder = folder.addFolder('Location Label');
 

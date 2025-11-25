@@ -152,7 +152,7 @@ body {
     height: 100%;
     object-fit: contain;
     object-position: center;
-    z-index: 50;
+    z-index: 0;
     pointer-events: none;
     /* Note: transform creates new stacking context - removed to maintain z-index hierarchy */
 }

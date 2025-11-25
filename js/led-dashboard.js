@@ -75,7 +75,7 @@ const ELEMENT_CONFIGS = {
       dotFillColor: '#f4dac7',
       dotStrokeColor: '#ef7e6e',
       dotStrokeWeight: 2.5,
-      dotFadeDuration: 4700,
+      dotFadeDuration: 5600,
       showLocationLabel: true,
       locationLabelDuration: 5000,
       locationLabelFontSize: 36,
@@ -83,7 +83,18 @@ const ELEMENT_CONFIGS = {
       locationLabelPosition: 'bottom',
       locationLabelOffset: 0,
       locationLabelMaxLength: 17,  // Max characters before truncating (testing - adjust based on visual fit) (removes city if too long, then truncates country)
-      locationLabelTextShadow: '0 0 5px rgba(1, 78, 116, 0.5), 0 0 20px rgba(1, 78, 116, 0.5)' // Dark teal glow effect
+      locationLabelTextShadow: '0 0 5px rgba(1, 78, 116, 0.5), 0 0 20px rgba(1, 78, 116, 0.5)', // Dark teal glow effect
+      // Ambient dots configuration
+      ambientDots: {
+        enabled: true,
+        minDots: 9,
+        maxDots: 90,
+        dotSize: 7,
+        dotColor: '#f2a49c',
+        minInterval: 1100,
+        maxInterval: 7200,
+        fadeDuration: 2800
+      }
     }
   },
 

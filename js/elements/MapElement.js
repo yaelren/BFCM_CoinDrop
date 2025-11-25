@@ -54,6 +54,26 @@ export class MapElement extends BaseElement {
     // Calibration mode state
     this.calibrationMode = false;
     this.calibrationPoints = [];
+
+    // Ambient random dots configuration (can be set via config.ambientDots)
+    const ambientConfig = config.config?.ambientDots || config.ambientDots || {};
+    this.ambientDots = {
+      enabled: ambientConfig.enabled || false,
+      dots: [], // Array of {x, y, alpha, timestamp, fadeDirection}
+      minDots: ambientConfig.minDots || 3,
+      maxDots: ambientConfig.maxDots || 8,
+      dotSize: ambientConfig.dotSize || 8,
+      dotColor: ambientConfig.dotColor || '#FF6B6B',
+      minInterval: ambientConfig.minInterval || 500,  // Min ms between spawns
+      maxInterval: ambientConfig.maxInterval || 2000, // Max ms between spawns
+      fadeDuration: ambientConfig.fadeDuration || 2000, // How long each dot lives
+      lastSpawnTime: 0,
+      nextSpawnInterval: 1000
+    };
+
+    // Pre-generated realistic world coordinates for ambient dots
+    // Clustered around populated areas based on calibration regions
+    this.ambientLocations = this.generateRealisticLocations();
     this.calibrationCities = [
       { name: 'New York', lat: 40.7128, lon: -74.0060, region: 'USA' },
       { name: 'Los Angeles', lat: 34.0522, lon: -118.2437, region: 'USA' },
@@ -157,8 +177,15 @@ export class MapElement extends BaseElement {
           }
         }
 
-        // Draw and update dots
+        // Get current time for all animations
         const currentTime = Date.now();
+
+        // Update and draw ambient random dots
+        if (this.ambientDots.enabled) {
+          this.updateAmbientDots(p, currentTime);
+        }
+
+        // Draw and update dots
         for (let i = this.dots.length - 1; i >= 0; i--) {
           const dot = this.dots[i];
 
@@ -612,6 +639,193 @@ export class MapElement extends BaseElement {
    */
   clearDots() {
     this.dots = [];
+  }
+
+  /**
+   * Generate realistic world locations for ambient dots
+   * Creates ~200 points clustered around populated regions
+   */
+  generateRealisticLocations() {
+    const locations = [];
+
+    // Population centers with weights (higher = more dots nearby)
+    const regions = [
+      // North America
+      { lat: 40.7, lon: -74.0, spread: 8, count: 25 },   // NYC area / East Coast
+      { lat: 34.0, lon: -118.2, spread: 6, count: 20 },  // LA / West Coast
+      { lat: 41.8, lon: -87.6, spread: 5, count: 15 },   // Chicago / Midwest
+      { lat: 29.7, lon: -95.4, spread: 5, count: 12 },   // Texas
+      { lat: 33.4, lon: -112.0, spread: 4, count: 8 },   // Phoenix
+      { lat: 47.6, lon: -122.3, spread: 4, count: 10 },  // Seattle
+      { lat: 25.7, lon: -80.2, spread: 4, count: 10 },   // Miami
+      { lat: 43.6, lon: -79.4, spread: 4, count: 8 },    // Toronto
+      { lat: 19.4, lon: -99.1, spread: 5, count: 10 },   // Mexico City
+
+      // Europe
+      { lat: 51.5, lon: -0.1, spread: 5, count: 20 },    // London
+      { lat: 48.8, lon: 2.3, spread: 4, count: 15 },     // Paris
+      { lat: 52.5, lon: 13.4, spread: 4, count: 12 },    // Berlin
+      { lat: 41.9, lon: 12.5, spread: 4, count: 10 },    // Rome
+      { lat: 40.4, lon: -3.7, spread: 4, count: 10 },    // Madrid
+      { lat: 52.3, lon: 4.9, spread: 3, count: 8 },      // Amsterdam
+      { lat: 59.3, lon: 18.0, spread: 3, count: 6 },     // Stockholm
+
+      // Asia
+      { lat: 35.6, lon: 139.6, spread: 5, count: 20 },   // Tokyo
+      { lat: 31.2, lon: 121.4, spread: 5, count: 15 },   // Shanghai
+      { lat: 22.3, lon: 114.1, spread: 3, count: 12 },   // Hong Kong
+      { lat: 1.3, lon: 103.8, spread: 3, count: 10 },    // Singapore
+      { lat: 37.5, lon: 127.0, spread: 4, count: 12 },   // Seoul
+      { lat: 13.7, lon: 100.5, spread: 4, count: 8 },    // Bangkok
+      { lat: 19.0, lon: 72.8, spread: 6, count: 15 },    // Mumbai
+      { lat: 28.6, lon: 77.2, spread: 5, count: 12 },    // Delhi
+      { lat: 39.9, lon: 116.4, spread: 5, count: 12 },   // Beijing
+
+      // Oceania
+      { lat: -33.8, lon: 151.2, spread: 5, count: 15 },  // Sydney
+      { lat: -37.8, lon: 144.9, spread: 4, count: 10 },  // Melbourne
+      { lat: -36.8, lon: 174.7, spread: 3, count: 6 },   // Auckland
+
+      // South America
+      { lat: -23.5, lon: -46.6, spread: 5, count: 15 },  // São Paulo
+      { lat: -34.6, lon: -58.3, spread: 4, count: 10 },  // Buenos Aires
+      { lat: -22.9, lon: -43.1, spread: 4, count: 8 },   // Rio
+      { lat: 4.7, lon: -74.0, spread: 4, count: 6 },     // Bogota
+      { lat: -33.4, lon: -70.6, spread: 3, count: 6 },   // Santiago
+
+      // Africa & Middle East
+      { lat: 30.0, lon: 31.2, spread: 4, count: 10 },    // Cairo
+      { lat: -33.9, lon: 18.4, spread: 4, count: 8 },    // Cape Town
+      { lat: 25.2, lon: 55.2, spread: 3, count: 10 },    // Dubai
+      { lat: 6.5, lon: 3.3, spread: 4, count: 8 },       // Lagos
+      { lat: -1.2, lon: 36.8, spread: 3, count: 5 },     // Nairobi
+    ];
+
+    // Generate points around each region
+    regions.forEach(region => {
+      for (let i = 0; i < region.count; i++) {
+        // Random offset with gaussian-like distribution (sum of randoms)
+        const latOffset = (Math.random() + Math.random() + Math.random() - 1.5) * region.spread;
+        const lonOffset = (Math.random() + Math.random() + Math.random() - 1.5) * region.spread;
+
+        locations.push({
+          lat: region.lat + latOffset,
+          lon: region.lon + lonOffset
+        });
+      }
+    });
+
+    return locations;
+  }
+
+  /**
+   * Update and draw ambient random dots
+   * These are decorative dots that appear at realistic geographic locations
+   */
+  updateAmbientDots(p, currentTime) {
+    const ambient = this.ambientDots;
+
+    // Spawn dots more aggressively when below minDots
+    const shouldSpawn = ambient.dots.length < ambient.minDots ||
+      (currentTime - ambient.lastSpawnTime >= ambient.nextSpawnInterval && ambient.dots.length < ambient.maxDots);
+
+    if (shouldSpawn) {
+      // Spawn multiple dots if we're way below minimum
+      const dotsToSpawn = ambient.dots.length < ambient.minDots
+        ? Math.min(3, ambient.minDots - ambient.dots.length)  // Spawn up to 3 at once to catch up
+        : 1;
+
+      for (let s = 0; s < dotsToSpawn; s++) {
+        // Pick a random location from pre-generated realistic coordinates
+        const location = this.ambientLocations[Math.floor(Math.random() * this.ambientLocations.length)];
+        const { x, y } = this.latLongToXY(location.lat, location.lon);
+
+        // Stagger timestamps more aggressively with randomization
+        // Each dot gets a different "age" so they fade at different times
+        const staggerOffset = s * (ambient.fadeDuration / 4) + Math.random() * (ambient.fadeDuration / 3);
+
+        const newDot = {
+          x,
+          y,
+          lat: location.lat,
+          lon: location.lon,
+          alpha: 0,
+          timestamp: currentTime - staggerOffset
+        };
+        ambient.dots.push(newDot);
+      }
+
+      // Set next spawn time
+      ambient.lastSpawnTime = currentTime;
+      ambient.nextSpawnInterval = ambient.minInterval +
+        Math.random() * (ambient.maxInterval - ambient.minInterval);
+    }
+
+    // Parse ambient dot color
+    const colorHex = ambient.dotColor.replace('#', '');
+    const r = parseInt(colorHex.substring(0, 2), 16);
+    const g = parseInt(colorHex.substring(2, 4), 16);
+    const b = parseInt(colorHex.substring(4, 6), 16);
+
+    // Responsive size
+    const scaleFactor = this.getScaleFactor();
+    const responsiveSize = ambient.dotSize * scaleFactor;
+
+    // Update and draw each ambient dot
+    for (let i = ambient.dots.length - 1; i >= 0; i--) {
+      const dot = ambient.dots[i];
+
+      // Recalculate position in case of resize (using stored lat/lon)
+      if (dot.lat !== undefined && dot.lon !== undefined) {
+        const pos = this.latLongToXY(dot.lat, dot.lon);
+        dot.x = pos.x;
+        dot.y = pos.y;
+      }
+
+      const elapsed = currentTime - dot.timestamp;
+      const halfDuration = ambient.fadeDuration / 2;
+
+      // Calculate alpha based on fade phase
+      if (elapsed < halfDuration) {
+        // Fade in phase
+        dot.alpha = p.map(elapsed, 0, halfDuration, 0, 255);
+      } else if (elapsed < ambient.fadeDuration) {
+        // Fade out phase
+        dot.alpha = p.map(elapsed, halfDuration, ambient.fadeDuration, 255, 0);
+      } else {
+        // Remove dot when fully faded
+        ambient.dots.splice(i, 1);
+        continue;
+      }
+
+      // Draw ambient dot (simple filled circle with glow)
+      p.noStroke();
+
+      // Outer glow
+      p.fill(r, g, b, dot.alpha * 0.3);
+      p.ellipse(dot.x, dot.y, responsiveSize * 2, responsiveSize * 2);
+
+      // Inner dot
+      p.fill(r, g, b, dot.alpha);
+      p.ellipse(dot.x, dot.y, responsiveSize, responsiveSize);
+    }
+  }
+
+  /**
+   * Set ambient dots configuration
+   */
+  setAmbientDotsConfig(config) {
+    Object.assign(this.ambientDots, config);
+  }
+
+  /**
+   * Enable/disable ambient dots
+   */
+  setAmbientDotsEnabled(enabled) {
+    this.ambientDots.enabled = enabled;
+    if (!enabled) {
+      this.ambientDots.dots = [];
+    }
   }
 
   /**
