@@ -94,7 +94,7 @@ body {
     height: 100vh;
     object-fit: cover;
     object-position: center;
-    z-index: -1;
+    z-index: 1;
     pointer-events: none;
     /* Arc browser compatibility fixes */
     -webkit-transform: translateZ(0);
