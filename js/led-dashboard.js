@@ -224,7 +224,7 @@ const ELEMENT_CONFIGS = {
     config: {
       fontSize: 72,
       color: '#000000',
-      prefix: '$',
+      prefix: '',
       suffix: '',
       decimals: 0,
       lerpSpeed: 1,
