@@ -479,11 +479,11 @@ class LEDDashboard {
       
       // Set initial values (use setValue for instant update, no animation)
       if (this.elements.totalOrders) {
-        this.elements.totalOrders.setValue(totals.orders_count.online);
+        this.elements.totalOrders.setValue(totals.orders_count.total);
       }
       
       if (this.elements.totalSales) {
-        this.elements.totalSales.setValue(totals.gpv.online);
+        this.elements.totalSales.setValue(totals.gpv.total);
       }
       
       if (this.elements.onlineGPV) {
@@ -491,8 +491,8 @@ class LEDDashboard {
       }
       
       // console.log('✅ Counters initialized:', {
-      //   totalOrders: totals.orders_count.online,
-      //   totalSales: totals.gpv.online,
+      //   totalOrders: totals.orders_count.total,
+      //   totalSales: totals.gpv.total,
       //   onlineGPV: totals.gpv.online
       // });
     } catch (error) {
@@ -508,7 +508,7 @@ class LEDDashboard {
     // Total Orders (TextElement uses currentValue, not targetValue)
     if (this.elements.totalOrders) {
       const localOrders = this.elements.totalOrders.currentValue || 0;
-      const apiOrders = totals.orders_count.online;
+      const apiOrders = totals.orders_count.total;
       if (localOrders !== apiOrders) {
         // console.log(`⚠️ Orders drift detected: Local=${localOrders}, API=${apiOrders}`);
         // console.log(`   Correcting to ${apiOrders}...`);
@@ -518,10 +518,10 @@ class LEDDashboard {
       }
     }
     
-    // Total Sales (using online GPV as total sales)
+    // Total Sales (using total GPV)
     if (this.elements.totalSales) {
       const localSales = this.elements.totalSales.targetValue || 0;
-      const apiSales = totals.gpv.online;
+      const apiSales = totals.gpv.total;
       if (Math.abs(localSales - apiSales) > 0.01) {  // Allow for rounding
         // console.log(`⚠️ Sales drift detected: Local=$${localSales.toFixed(2)}, API=$${apiSales.toFixed(2)}`);
         // console.log(`   Correcting to $${apiSales.toFixed(2)}...`);
