@@ -19,7 +19,7 @@ export class TotalsPoller {
     this.onError = onError;
     this.intervalId = null;
     this.isRunning = false;
-    this.pollInterval = 600000;  // 10 minutes (600,000 ms)
+    this.pollInterval = 60000;  // 1 minute (60,000 ms)
   }
 
   /**
