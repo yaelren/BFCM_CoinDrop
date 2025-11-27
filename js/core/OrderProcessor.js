@@ -21,7 +21,7 @@ export class OrderProcessor {
     this.queueManager = queueManager;
     this.dashboard = dashboard;
     this.config = {
-      minDisplayTime: config.minDisplayTime || 3000,  // Default 3 seconds between orders
+      minDisplayTime: config.minDisplayTime || 2500,  // Default 2.5 seconds between orders
       saleToPlinkDelay: config.saleToPlinkDelay || 200,  // Delay from sale to plinko
       plinkoToCountersDelay: config.plinkoToCountersDelay || 300,  // Delay before counters update
       wowTriggerAmount: config.wowTriggerAmount || 1000  // Trigger WOW animation for orders >= this amount
