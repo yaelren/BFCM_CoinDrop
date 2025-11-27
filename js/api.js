@@ -127,6 +127,35 @@ class BFCMApi {
     }
 
     /**
+     * Fetch online data (orders_count, gpv, aov for online orders)
+     * @returns {Promise<Object>} Online data
+     */
+    async fetchOnlines() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/onlines`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            this.isConnected = true;
+            this.lastUpdate = new Date();
+            this.errorCount = 0;
+
+            return data;
+        } catch (error) {
+            this.handleError('fetchOnlines', error);
+            throw error;
+        }
+    }
+
+    /**
      * Test API connection with ping endpoint
      * @returns {Promise<boolean>} True if connection successful
      */

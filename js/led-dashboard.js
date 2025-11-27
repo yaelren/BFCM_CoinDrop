@@ -19,6 +19,7 @@ import { BFCMApi } from './api.js';
 import { OrderQueueManager } from './core/OrderQueueManager.js';
 import { OrderPoller } from './core/OrderPoller.js';
 import { TotalsPoller } from './core/TotalsPoller.js';
+import { OnlineGPVPoller } from './core/OnlineGPVPoller.js';
 import { OrderProcessor } from './core/OrderProcessor.js';
 
 // Aspect ratio management
@@ -255,6 +256,7 @@ class LEDDashboard {
     this.queueManager = null;
     this.orderPoller = null;
     this.totalsPoller = null;
+    this.onlineGPVPoller = null;
     this.processor = null;
   }
 
@@ -462,9 +464,17 @@ class LEDDashboard {
         (error) => console.error('Totals polling error:', error)
       );
 
+      // Create online GPV poller (on start and every 10 minutes)
+      this.onlineGPVPoller = new OnlineGPVPoller(
+        this.api,
+        (gpv) => this.updateOnlineGPV(gpv),
+        (error) => console.error('Online GPV polling error:', error)
+      );
+
       // Start polling and processing
       this.orderPoller.start();
       this.totalsPoller.start();
+      this.onlineGPVPoller.start();
       this.processor.start();
 
       // console.log('✅ Processing system started');
@@ -497,15 +507,12 @@ class LEDDashboard {
       if (this.elements.totalSales) {
         this.elements.totalSales.setValue(totals.gpv.total);
       }
-      
-      if (this.elements.onlineGPV) {
-        this.elements.onlineGPV.setValue(totals.gpv.online);
-      }
-      
+
+      // Note: onlineGPV is now initialized by OnlineGPVPoller from /api/onlines
+
       // console.log('✅ Counters initialized:', {
       //   totalOrders: totals.orders_count.total,
-      //   totalSales: totals.gpv.total,
-      //   onlineGPV: totals.gpv.online
+      //   totalSales: totals.gpv.total
       // });
     } catch (error) {
       // console.error('❌ Failed to initialize counters:', error);
@@ -542,21 +549,20 @@ class LEDDashboard {
         // console.log(`✅ Sales in sync: $${apiSales.toFixed(2)}`);
       }
     }
-    
-    // Online GPV
-    if (this.elements.onlineGPV) {
-      const localGPV = this.elements.onlineGPV.currentValue || 0;
-      const apiGPV = totals.gpv.online;
-      if (Math.abs(localGPV - apiGPV) > 0.01) {  // Allow for rounding
-        // console.log(`⚠️ Online GPV drift detected: Local=$${localGPV.toFixed(2)}, API=$${apiGPV.toFixed(2)}`);
-        // console.log(`   Correcting to $${apiGPV.toFixed(2)}...`);
-        this.elements.onlineGPV.updateData(apiGPV);
-      } else {
-        // console.log(`✅ Online GPV in sync: $${apiGPV.toFixed(2)}`);
-      }
-    }
-    
+
+    // Note: onlineGPV is now managed by OnlineGPVPoller from /api/onlines
+
     // console.log('═════════════════════════════════════════════════════');
+  }
+
+  /**
+   * Update online GPV from /api/onlines endpoint
+   * Called on start and every 10 minutes
+   */
+  updateOnlineGPV(gpv) {
+    if (this.elements.onlineGPV) {
+      this.elements.onlineGPV.updateData(gpv);
+    }
   }
 
   /**

@@ -14,6 +14,7 @@ const orders = require('./api/orders');
 const stores = require('./api/stores');
 const products = require('./api/products');
 const ping = require('./api/ping');
+const onlines = require('./api/onlines');
 
 // Route map
 const routes = {
@@ -21,7 +22,8 @@ const routes = {
     '/api/orders': orders,
     '/api/stores': stores,
     '/api/products': products,
-    '/api/ping': ping
+    '/api/ping': ping,
+    '/api/onlines': onlines
 };
 
 // MIME types
@@ -89,6 +91,7 @@ server.listen(PORT, () => {
     console.log(`   GET http://localhost:${PORT}/api/stores`);
     console.log(`   GET http://localhost:${PORT}/api/products`);
     console.log(`   GET http://localhost:${PORT}/api/ping`);
+    console.log(`   GET http://localhost:${PORT}/api/onlines`);
     console.log(`\n🎨 Open http://localhost:${PORT} in your browser\n`);
 });
 
