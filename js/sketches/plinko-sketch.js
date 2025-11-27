@@ -62,7 +62,7 @@ export function createPlinkoSketch(p, container, externalConfig = {}) {
     pegRestitution: externalConfig.pegRestitution ?? 0.8,
     pegFriction: externalConfig.pegFriction ?? 0,
     // Coin collider size (ratio of visual size)
-    coinColliderRatio: externalConfig.coinColliderRatio ?? 0.35,
+    coinColliderRatio: externalConfig.coinColliderRatio ?? 0.87,
     // Particle drop shadow
     particleShadowBlur: externalConfig.particleShadowBlur ?? 27,
     particleShadowColor: externalConfig.particleShadowColor ?? '#000000',

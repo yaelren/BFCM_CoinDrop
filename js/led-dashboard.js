@@ -142,7 +142,7 @@ const ELEMENT_CONFIGS = {
       particleFriction: 0.3,
       particleDensity: 1,
       particleFrictionAir: 0.01,
-      coinColliderRatio: 0.95,
+      coinColliderRatio: 0.87,
       // Peg physics settings
       pegRestitution: 0.8,
       pegFriction: 0,
@@ -442,9 +442,10 @@ class LEDDashboard {
 
       // Create order processor (PHASE I: logging only)
       this.processor = new OrderProcessor(this.queueManager, this, {
-        minDisplayTime: 5000,  // 5 seconds between orders
+        minDisplayTime: 2500,  // 2.5 seconds between orders
         saleToPlinkDelay: 500,  // 500ms delay from sale to plinko drop
-        plinkoToCountersDelay: 500  // 500ms delay before counters update
+        plinkoToCountersDelay: 500,  // 500ms delay before counters update
+        wowTriggerAmount: 500  // Trigger WOW animation for orders >= $500
       });
 
       // Create order poller (every 2 seconds)
