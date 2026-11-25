@@ -1,6 +1,8 @@
 // BFCM Dashboard Main Application
 // Handles UI updates, polling, and data formatting
 
+import { api } from './api.js';
+
 class Dashboard {
     constructor() {
         this.pollingIntervals = {
@@ -137,9 +139,9 @@ class Dashboard {
             const data = await api.fetchTotals();
 
             // Update UI
-            document.getElementById('totalOrders').textContent = this.formatNumber(data.orders_count);
-            document.getElementById('totalGMV').textContent = this.formatCurrency(data.gpv);
-            document.getElementById('avgOrder').textContent = this.formatCurrency(data.aov);
+            document.getElementById('totalOrders').textContent = this.formatNumber(data.orders_count.total);
+            document.getElementById('totalGMV').textContent = this.formatCurrency(data.gpv.total);
+            document.getElementById('avgOrder').textContent = this.formatCurrency(data.aov.total);
 
             this.updateStatus('Connected', true);
         } catch (error) {
@@ -348,6 +350,8 @@ let dashboard;
 
 document.addEventListener('DOMContentLoaded', () => {
     dashboard = new Dashboard();
+    // Expose globally for inline onclick handlers in dashboard.html
+    window.dashboard = dashboard;
     dashboard.init();
 });
 
